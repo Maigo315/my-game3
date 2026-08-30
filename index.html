@@ -1,97 +1,35 @@
 <!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>魔物娘ファクトリー 戦闘試作 v0.1</title>
-<style>
-:root{
-  --bg:#11131a; --panel:#1b1f2a; --panel2:#242a38; --line:#394155; --text:#f3f5fa;
-  --muted:#aeb6c8; --good:#8de3a5; --bad:#ff9696; --accent:#9ec5ff; --gold:#ffd479;
-}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Hiragino Sans","Yu Gothic UI",sans-serif}
-body{overflow-x:hidden}
-button{font:inherit;color:inherit}
-#app{min-height:100dvh;padding:10px max(10px,env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}
-.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
-.title{font-weight:800;letter-spacing:.04em;font-size:clamp(16px,2.5vw,22px)}
-.badge{font-size:12px;color:var(--muted);border:1px solid var(--line);padding:4px 8px;border-radius:999px;background:#151923}
-.screen{display:none}.screen.active{display:block}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 30px #0005}
-#selectScreen{max-width:1180px;margin:auto}
-.instructions{padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.instructions p{margin:0;color:var(--muted);font-size:13px;line-height:1.5}
-.toggle{display:flex;align-items:center;gap:8px;font-size:13px;white-space:nowrap}
-.roster{display:grid;grid-template-columns:repeat(6,minmax(130px,1fr));gap:8px}
-.pick-card{position:relative;min-width:0;background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:7px;cursor:pointer;transition:.15s transform,.15s border-color}
-.pick-card:active{transform:scale(.985)}.pick-card.selected{border-color:var(--accent);box-shadow:0 0 0 2px #9ec5ff22 inset}
-.pick-card img{width:100%;aspect-ratio:4/5;object-fit:cover;object-position:50% 24%;border-radius:10px;background:#0d0f14}
-.pick-name{display:flex;justify-content:space-between;align-items:center;gap:6px;font-weight:800;font-size:13px;margin-top:6px}
-.rank{font-size:11px;padding:1px 5px;border-radius:5px;background:#4c5569;color:#fff}
-.stats-mini{display:grid;grid-template-columns:1fr 1fr;gap:2px 6px;font-size:10px;color:var(--muted);margin-top:4px}
-.detail{font-size:10px;color:#cbd1df;margin-top:5px;line-height:1.35;min-height:28px}
-.select-footer{display:flex;justify-content:center;gap:10px;margin-top:12px;position:sticky;bottom:6px;z-index:5}
-.primary,.secondary{border:1px solid var(--line);border-radius:12px;padding:10px 18px;font-weight:800;background:var(--panel2);cursor:pointer}
-.primary{background:#315a91;border-color:#5c8fd0}.primary:disabled{opacity:.4;cursor:not-allowed}
-#battleScreen{height:calc(100dvh - 20px);max-height:760px;min-height:560px;display:none;grid-template-rows:auto 1fr auto;gap:7px;margin:auto;max-width:1250px}
-#battleScreen.active{display:grid}
-.battle-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
-.side-title{font-size:12px;color:var(--muted);font-weight:700}.side-title.enemy{text-align:right}
-.turn-chip{padding:4px 10px;background:var(--panel);border:1px solid var(--line);border-radius:999px;font-weight:800;font-size:12px}
-.arena{display:grid;grid-template-rows:1fr minmax(80px,.48fr) 1fr;gap:6px;min-height:0}
-.team-row{display:flex;justify-content:center;align-items:stretch;gap:6px;min-height:0}
-.unit-card{position:relative;width:min(23vw,190px);min-width:112px;background:var(--panel);border:2px solid var(--line);border-radius:12px;overflow:hidden;display:grid;grid-template-columns:44% 56%;cursor:pointer;transition:.12s border-color,.12s transform;min-height:0}
-.unit-card.active{border-color:var(--accent)}.unit-card.targetable{border-color:var(--gold);animation:pulse 1s infinite alternate}.unit-card.dead{filter:grayscale(1);opacity:.5}.unit-card.summon{width:min(18vw,145px);opacity:.95}
-@keyframes pulse{from{box-shadow:0 0 0 0 #ffd47922}to{box-shadow:0 0 0 4px #ffd47933}}
-.portrait{min-width:0;position:relative;background:#0c0f15}.portrait img{width:100%;height:100%;object-fit:cover;object-position:50% 25%;display:block}
-.unit-info{padding:5px 6px;min-width:0;overflow:hidden}
-.unit-name{font-weight:800;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.unit-sub{font-size:9px;color:var(--muted);margin-bottom:3px}
-.hpbar{height:10px;background:#090b10;border-radius:999px;overflow:hidden;border:1px solid #353b48}.hpfill{height:100%;background:linear-gradient(90deg,#62cc78,#a5e67a);transition:width .25s}.hpfill.low{background:linear-gradient(90deg,#d66,#f0a06e)}
-.hptext{font-size:9px;color:#dce2ee;text-align:right;margin-top:1px}.battle-stats{font-size:8px;color:var(--muted);line-height:1.35;margin-top:3px}.status-line{display:flex;flex-wrap:wrap;gap:2px;margin-top:3px;max-height:31px;overflow:hidden}.status-tag{font-size:8px;padding:1px 3px;border-radius:4px;background:#4b5264}.status-tag.good{background:#315d44}.status-tag.bad{background:#763f4b}.planned{position:absolute;left:3px;bottom:3px;font-size:8px;background:#10141ddd;border-radius:5px;padding:2px 4px;max-width:90%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.log-panel{background:#0d1017;border:1px solid var(--line);border-radius:10px;padding:6px 9px;overflow:auto;font-size:11px;line-height:1.45;min-height:0}.log-panel p{margin:0 0 2px}.log-panel .sys{color:var(--accent)}.log-panel .damage{color:#ffd7a0}.log-panel .heal{color:var(--good)}.log-panel .warn{color:var(--bad)}
-.command-panel{display:grid;grid-template-columns:minmax(180px,.7fr) 2fr auto;gap:7px;align-items:stretch;min-height:100px}
-.actor-box,.commands,.turn-actions{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px}.actor-box{font-size:11px;line-height:1.45}.actor-name{font-weight:900;font-size:13px}.actor-hint{color:var(--muted);font-size:10px}.commands{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.cmd{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:7px 6px;cursor:pointer;text-align:left;min-width:0}.cmd:disabled{opacity:.4;cursor:not-allowed}.cmd strong{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cmd small{display:block;color:var(--muted);font-size:9px;line-height:1.25;margin-top:2px}.turn-actions{display:flex;flex-direction:column;gap:6px;justify-content:center}.turn-actions button{white-space:nowrap;padding:9px 10px}
-.overlay{position:fixed;inset:0;background:#05070bcc;display:none;align-items:center;justify-content:center;z-index:30;padding:20px}.overlay.show{display:flex}.result{max-width:450px;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;text-align:center}.result h2{margin:0 0 8px;font-size:28px}.result p{color:var(--muted);font-size:13px}
-.orientation{display:none;position:fixed;left:50%;top:8px;transform:translateX(-50%);z-index:20;background:#121722e8;border:1px solid var(--line);padding:5px 10px;border-radius:999px;font-size:10px;color:var(--muted)}
-@media (orientation:portrait) and (max-width:700px){.orientation{display:block}.roster{grid-template-columns:repeat(2,1fr)}#battleScreen{height:auto;min-height:100dvh}.arena{grid-template-rows:auto 130px auto}.unit-card{width:31vw;min-width:100px;grid-template-columns:1fr;grid-template-rows:80px auto}.portrait img{object-position:50% 20%}.command-panel{grid-template-columns:1fr}.commands{grid-template-columns:repeat(3,1fr)}.turn-actions{flex-direction:row}.battle-stats{display:none}}
-@media (max-width:900px) and (orientation:landscape){#app{padding-top:5px}.topbar{margin-bottom:4px}.title{font-size:14px}.roster{grid-template-columns:repeat(6,1fr)}.pick-card{padding:5px}.pick-card img{aspect-ratio:1/1.15}.detail{display:none}#battleScreen{height:calc(100dvh - 10px);min-height:340px}.arena{grid-template-rows:1fr minmax(58px,.42fr) 1fr}.unit-card{width:min(22vw,168px);min-width:100px}.unit-info{padding:3px 4px}.status-line{max-height:20px}.command-panel{min-height:78px;grid-template-columns:minmax(145px,.65fr) 2fr auto}.actor-box,.commands,.turn-actions{padding:5px}.cmd{padding:5px 4px}.log-panel{font-size:9px}.turn-actions button{padding:7px 8px;font-size:10px}}
-</style>
-</head>
-<body>
-<div class="orientation">横向き推奨です</div>
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><meta name="theme-color" content="#101722"><title>魔物娘ファクトリー 戦闘試作 v0.2</title><style>
+:root{--bg:#080d14;--panel:#111c28;--panel2:#182839;--line:#3b5870;--text:#eef5ff;--muted:#9fb0c4;--gold:#f0d06d;--hp:#68d391;--accent:#7ec8ff;--danger:#ef8585;--safe-left:env(safe-area-inset-left,0px);--safe-right:env(safe-area-inset-right,0px);--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;width:100%;height:100%;background:#05080d;color:var(--text);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans JP",sans-serif;overflow:hidden}button{font:inherit;color:inherit}button:disabled{opacity:.38;cursor:not-allowed;filter:grayscale(.35)}
+#rotateNotice{display:none;position:fixed;inset:0;z-index:999;background:#07111d;align-items:center;justify-content:center;text-align:center;padding:28px}#rotateNotice .card{max-width:420px;background:#112235;border:1px solid #31506c;border-radius:20px;padding:24px}#rotateNotice .phone{display:block;font-size:52px;transform:rotate(90deg);margin-bottom:10px}@media(orientation:portrait) and (max-width:900px){#rotateNotice{display:flex}}
+#app{width:100vw;height:100dvh;display:flex;flex-direction:column;background:radial-gradient(circle at 50% 20%,rgba(50,86,113,.19),transparent 42%),linear-gradient(#0f1824,#0a1018)}
+.topbar{height:50px;flex:0 0 50px;display:flex;align-items:center;gap:10px;padding:0 calc(12px + var(--safe-right)) 0 calc(12px + var(--safe-left));background:linear-gradient(#1b2a3a,#101925);border-bottom:1px solid #334c63;box-shadow:0 3px 12px #0007;z-index:30}.title{font-size:17px;font-weight:900;letter-spacing:.04em;white-space:nowrap}.title small{color:#9eb0c2;font-weight:700;font-size:10px}.grow{flex:1}.version{padding:5px 9px;border-radius:999px;border:1px solid #7b6a35;background:linear-gradient(#4b401e,#2a2415);color:#fff0a2;font-size:10px;font-weight:1000;letter-spacing:.06em}.speed-box{display:none;align-items:center;gap:3px;padding:3px 4px;border-radius:10px;background:#0a1621;border:1px solid #37536a}.battle-mode .speed-box{display:flex}.speed-box span{font-size:8px;color:#aebdca;margin:0 2px}.speed-btn{height:25px;border:1px solid #456078;border-radius:7px;background:#15283a;font-size:8px;padding:0 6px;cursor:pointer;font-weight:800}.speed-btn.active{border-color:#e3c867;background:#5b4a1d;color:#fff0aa}
+.screen{display:none;flex:1;min-height:0}.screen.active{display:flex}
+/* selection */#selectScreen{overflow:auto;padding:10px calc(10px + var(--safe-right)) max(10px,var(--safe-bottom)) calc(10px + var(--safe-left));flex-direction:column}.instructions{max-width:1180px;width:100%;margin:0 auto 9px;padding:10px 12px;border:1px solid var(--line);border-radius:13px;background:rgba(17,28,40,.95);display:flex;align-items:center;justify-content:space-between;gap:10px}.instructions p{margin:0;color:#b8c6d3;font-size:11px;line-height:1.45}.toggle{font-size:10px;white-space:nowrap}.roster{width:min(1180px,100%);margin:auto;display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:7px}.pick-card{min-width:0;background:#111c28;border:2px solid #354f65;border-radius:13px;padding:6px;cursor:pointer}.pick-card.selected{border-color:#e4cd70;box-shadow:0 0 14px rgba(228,205,112,.2)}.pick-card img{width:100%;aspect-ratio:4/5;object-fit:contain;background:#09121b;border-radius:9px}.pick-name{display:flex;justify-content:space-between;gap:5px;font-size:11px;font-weight:900;margin-top:5px}.rank{padding:1px 5px;border-radius:5px;background:#4c5569;font-size:9px}.stats-mini{display:grid;grid-template-columns:1fr 1fr;gap:1px 4px;margin-top:3px;font-size:8px;color:#aebdca}.detail{font-size:8px;color:#c4d0db;margin-top:3px;line-height:1.3}.select-footer{display:flex;justify-content:center;gap:8px;margin-top:9px;position:sticky;bottom:3px}.primary,.secondary{border:1px solid #4b6984;border-radius:10px;padding:8px 14px;background:linear-gradient(#25415a,#172b3e);cursor:pointer;font-weight:900}.primary{border-color:#9c843c;background:linear-gradient(#64521e,#3a3015);color:#fff0aa}
+/* battle */#battleScreen{padding:6px calc(6px + var(--safe-right)) max(6px,var(--safe-bottom)) calc(6px + var(--safe-left));position:relative}.battle-shell{width:100%;height:100%;min-height:0;display:grid;grid-template-rows:minmax(0,1fr) 102px;gap:6px;position:relative}.battle-upper{min-height:0;display:grid;grid-template-columns:178px minmax(0,1fr) 180px;gap:6px}.battle-focus,.battle-field,.battle-commands,.party-card{background:rgba(15,27,39,.96);border:1px solid #3a5369;border-radius:14px;box-shadow:0 7px 20px #0005}.battle-focus{padding:7px;display:flex;flex-direction:column;min-height:0;overflow:hidden}.battle-focus-title,.battle-commands h3{font-size:9px;color:#9fb0c4;font-weight:900;letter-spacing:.1em;margin:0}.battle-focus-name{font-size:16px;font-weight:1000;margin:2px 0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.battle-focus-portrait{flex:1;min-height:0;border:1px solid #2e4960;border-radius:10px;background:radial-gradient(circle at 50% 45%,rgba(73,126,153,.32),transparent 52%),linear-gradient(#14283a,#0b1722);display:flex;align-items:center;justify-content:center;overflow:hidden;transform-origin:center}.battle-focus-portrait img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 9px 9px #0008)}.battle-focus-caption{margin-top:4px;padding:5px 6px;border-radius:8px;background:#0c1722;font-size:8px;color:#c5d2de;line-height:1.35;max-height:44px;overflow:hidden}.battle-focus-portrait.actor-attack{animation:actorAttack .52s ease}.battle-focus-portrait.actor-cast{animation:actorCast .62s ease}.battle-focus-portrait.actor-buff{animation:actorBuff .58s ease}@keyframes actorAttack{0%{transform:translateX(0)}35%{transform:translateX(13px) scale(1.035)}100%{transform:translateX(0)}}@keyframes actorCast{0%{filter:brightness(1)}40%{filter:brightness(1.6);transform:scale(1.025)}100%{filter:brightness(1);transform:scale(1)}}@keyframes actorBuff{0%{filter:brightness(1)}45%{filter:brightness(1.45);transform:translateY(-3px)}100%{filter:brightness(1);transform:none}}
+.battle-field{position:relative;overflow:hidden;min-width:0;background:radial-gradient(ellipse at 50% 78%,rgba(71,94,108,.25),transparent 42%),linear-gradient(#14202d,#0b131d)}.battle-field:before{content:"";position:absolute;left:7%;right:7%;bottom:18%;height:18%;background:radial-gradient(ellipse,rgba(0,0,0,.34),transparent 68%)}.battle-area-label{position:absolute;left:7px;top:6px;z-index:8;padding:4px 8px;border-radius:999px;background:rgba(5,13,20,.82);border:1px solid #37536a;font-size:9px;color:#d5e0e8}.turn-chip{position:absolute;right:7px;top:6px;z-index:8;padding:4px 8px;border-radius:999px;background:rgba(5,13,20,.82);border:1px solid #75652e;color:#f0da82;font-size:9px;font-weight:1000}.order-strip{position:absolute;left:50%;top:6px;transform:translateX(-50%);z-index:8;max-width:62%;display:flex;gap:3px;overflow:hidden}.order-chip,.order-hint{flex:0 0 auto;padding:3px 6px;border-radius:999px;background:rgba(5,13,20,.84);border:1px solid #3a5369;font-size:7px;color:#b8c8d5;white-space:nowrap}.order-chip.current{border-color:#f0d16a;color:#fff0a4;background:#4b3f1c}.order-chip.out{opacity:.4;text-decoration:line-through}
+.enemy-stage{position:absolute;left:4%;right:4%;top:13%;bottom:14%;display:flex;align-items:flex-end;justify-content:center;gap:clamp(2px,1.3vw,15px);z-index:3}.enemy-unit{position:relative;height:100%;min-width:0;flex:0 1 auto;border:0;background:transparent;color:inherit;padding:0 0 38px;cursor:pointer;transition:.16s transform,.16s opacity,.16s filter}.enemy-unit .enemy-art{width:100%;height:100%;display:flex;align-items:flex-end;justify-content:center}.enemy-unit img{width:100%;height:100%;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 9px 7px #0009)}.enemy-stage[data-count="1"] .enemy-unit{width:48%}.enemy-stage[data-count="2"] .enemy-unit{width:36%}.enemy-stage[data-count="3"] .enemy-unit{width:29%}.enemy-stage[data-count="4"] .enemy-unit{width:23%}.enemy-name{position:absolute;left:50%;bottom:15px;transform:translateX(-50%);max-width:96%;padding:2px 7px;border-radius:999px;background:rgba(6,13,19,.9);border:1px solid #667f92;font-size:9px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.enemy-hp-wrap{position:absolute;left:8%;right:8%;bottom:0;height:8px;border-radius:999px;background:#09131c;border:1px solid #728493;overflow:hidden}.enemy-hp-wrap i{display:block;height:100%;background:linear-gradient(90deg,#cf5252,#ef7b6d);transition:.28s}.enemy-hp-num{position:absolute;left:50%;bottom:27px;transform:translateX(-50%);font-size:8px;font-weight:1000;text-shadow:0 1px 3px #000}.enemy-status-line{position:absolute;left:50%;top:2px;transform:translateX(-50%);display:flex;gap:2px;max-width:100%;overflow:hidden}.enemy-status,.status-chip{padding:1px 4px;border-radius:999px;border:1px solid #52687a;background:#152431;color:#cbd8e2;font-size:6px;font-weight:1000;white-space:nowrap}.enemy-status.good,.status-chip.good{border-color:#aa8e39;background:#4a3d19;color:#ffe69a}.enemy-status.bad,.status-chip.bad{border-color:#8e536a;background:#3b2029;color:#ffc7d4}.enemy-unit.targetable{transform:translateY(-5px) scale(1.035);filter:drop-shadow(0 0 12px rgba(255,224,121,.95));animation:targetPulse .62s ease-in-out infinite alternate}.enemy-unit.targetable:after{content:"▼";position:absolute;left:50%;top:-8px;transform:translateX(-50%);color:#fff0a4;font-size:17px;font-weight:1000;text-shadow:0 2px 5px #000,0 0 10px #ffd95c}.enemy-unit.acting{transform:translateY(-8px) scale(1.075);filter:drop-shadow(0 0 13px rgba(255,231,139,.95));z-index:7}.enemy-unit.acting:before{content:"ACTION";position:absolute;left:50%;top:-18px;transform:translateX(-50%);padding:2px 6px;border-radius:999px;background:#6c5520;border:1px solid #f1d679;color:#fff4bd;font-size:7px;font-weight:1000;letter-spacing:.08em}.enemy-unit.hit img{animation:enemyHit .38s ease}.enemy-unit.dead{opacity:.25;filter:grayscale(1);pointer-events:none}@keyframes enemyHit{0%{transform:translateX(0);filter:brightness(1)}30%{transform:translateX(-8px);filter:brightness(2)}65%{transform:translateX(8px)}100%{transform:translateX(0);filter:brightness(1)}}@keyframes targetPulse{from{filter:drop-shadow(0 0 8px rgba(255,224,121,.68))}to{filter:drop-shadow(0 0 19px rgba(255,239,151,1))}}
+.battle-message{position:absolute;z-index:9;left:7px;right:7px;bottom:5px;min-height:31px;padding:6px 9px;border-radius:8px;background:rgba(5,13,20,.94);border:1px solid #3d5a72;font-size:11px;font-weight:800;display:flex;align-items:center;line-height:1.35}.log-btn{position:absolute;right:8px;bottom:42px;z-index:10;border:1px solid #48657e;border-radius:7px;background:rgba(10,24,35,.9);padding:3px 7px;font-size:7px;color:#aebfcd;cursor:pointer}
+.battle-commands{padding:6px;display:flex;flex-direction:column;gap:5px;min-height:0;overflow:hidden}.command-grid{display:flex;flex-direction:column;gap:5px;min-height:0;overflow:auto;scrollbar-width:none}.cmd{min-height:48px;border:1px solid #4b6984;background:linear-gradient(#25415a,#172b3e);border-radius:9px;padding:5px 6px;display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:5px;align-items:center;text-align:left;cursor:pointer}.cmd-icon{font-size:20px;text-align:center}.cmd-copy{min-width:0}.cmd-copy strong{display:block;font-size:10px;font-weight:1000}.cmd-copy small{display:block;margin-top:2px;color:#aebdca;font-size:7px;line-height:1.25}.cmd em{font-style:normal;font-size:7px;color:#f0d77a;font-weight:1000;white-space:nowrap}.turn-actions{margin-top:auto;display:grid;grid-template-columns:1fr 1fr;gap:4px}.turn-actions button{min-height:31px;padding:5px;border-radius:8px;border:1px solid #4b6984;background:#172b3e;font-size:8px;font-weight:1000;cursor:pointer}.turn-actions .execute{grid-column:1/-1;border-color:#9b8239;background:linear-gradient(#64521e,#3a3015);color:#fff0aa}.target-panel{display:flex;flex-direction:column;gap:5px;padding:7px;border:1px solid #536f86;border-radius:10px;background:linear-gradient(#13283a,#0d1b28);font-size:8px}.target-panel>strong{font-size:11px}.target-panel>span{color:#aac0d1}.target-list{display:flex;flex-direction:column;gap:3px}.target-list button,.target-back{height:28px;border:1px solid #4e7896;border-radius:7px;background:#18344a;font-size:8px;font-weight:900;cursor:pointer}.target-back{background:#2c4052}.command-empty{padding:20px 7px;color:#91a4b5;font-size:9px;text-align:center}
+.battle-party-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;min-height:0}.battle-party-row[data-count="4"]{grid-template-columns:repeat(4,minmax(0,1fr))}.party-card{position:relative;padding:6px 7px;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 5px;align-content:center;cursor:pointer;text-align:left}.party-card.active{border-color:#ead271;box-shadow:inset 0 0 0 2px rgba(234,210,113,.25)}.party-card.targetable{border-color:#9be4ff;box-shadow:0 0 16px rgba(111,205,255,.48),inset 0 0 0 2px rgba(132,218,255,.28);animation:partyTarget .62s ease-in-out infinite alternate}.party-card.dead{opacity:.46;filter:grayscale(.75)}.party-card.acting{border-color:#f0d16a}.party-card-head{display:contents}.party-card-head strong{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.party-card-head span{font-size:8px;color:#efd980;font-weight:900}.status-effects{grid-column:1/-1;min-height:12px;display:flex;gap:2px;overflow:hidden}.queued-action{grid-column:1/-1;padding:3px 6px;border-radius:7px;background:#192738;color:#9faeba;font-size:8px;font-weight:1000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.queued-action.ready{color:#fff0a7;background:#332d1a;border:1px solid rgba(236,211,108,.2)}.mini-row{grid-column:1/-1;display:grid;grid-template-columns:20px minmax(0,1fr) 58px;gap:4px;align-items:center;font-size:8px;color:#bdcad6}.mini-row>strong{text-align:right;font-size:9px;color:#f1f5f8}.mini-hp{height:5px;border-radius:999px;background:#263746;overflow:hidden}.mini-hp i{display:block;height:100%;background:linear-gradient(90deg,#48b972,#79df9a);transition:.28s}.party-stats{grid-column:1/-1;color:#8fa1b1;font-size:7px}.party-card.summon{border-style:dashed}.party-card.hit{animation:partyHit .42s ease}.party-card.heal-glow{animation:healGlow .68s ease}.party-card.buff-glow{animation:buffGlow .68s ease}.party-card.debuff-glow{animation:debuffGlow .68s ease}@keyframes partyTarget{from{filter:brightness(1)}to{filter:brightness(1.25)}}@keyframes partyHit{0%{transform:translateX(0);background:#421f25}25%{transform:translateX(-7px)}55%{transform:translateX(7px)}100%{transform:none}}@keyframes healGlow{45%{border-color:#78e39a;box-shadow:0 0 18px rgba(86,224,132,.72)}}@keyframes buffGlow{45%{border-color:#ead668;box-shadow:0 0 18px rgba(246,220,105,.68)}}@keyframes debuffGlow{45%{border-color:#df7c8b;box-shadow:0 0 18px rgba(223,84,109,.56)}}
+.battle-global-fx{position:absolute;inset:0;z-index:80;pointer-events:none;overflow:hidden}.fx{position:absolute;transform:translate(-50%,-50%);font-weight:1000;text-shadow:0 3px 8px #000;animation:fxPop .8s ease forwards}.fx>span{display:block;font-size:46px;text-align:center}.fx>small{display:block;margin-top:-4px;padding:2px 5px;border-radius:999px;background:#09131ddd;border:1px solid #5a7184;font-size:8px;color:#f2f7fb;white-space:nowrap}.fx-ice{color:#bdeaff}.fx-heal,.fx-buff{color:#a8f2bb}.fx-debuff,.fx-status{color:#ffadb7}.fx-arrow{color:#fff0a0}.value-pop{position:absolute;transform:translate(-50%,-50%);text-align:center;text-shadow:0 3px 7px #000;animation:valuePop .86s ease forwards}.value-pop small{display:block;font-size:10px;color:#fff0a0;font-weight:1000;letter-spacing:.08em}.value-pop strong{display:block;font-size:25px;color:#ff9d9d;font-weight:1000}.value-pop.heal strong{color:#83efad}.value-pop.recoil strong{color:#ffc07d}@keyframes fxPop{0%{opacity:0;transform:translate(-50%,-40%) scale(.45)}25%{opacity:1;transform:translate(-50%,-55%) scale(1.15)}100%{opacity:0;transform:translate(-50%,-78%) scale(.9)}}@keyframes valuePop{0%{opacity:0;transform:translate(-50%,-25%) scale(.7)}20%{opacity:1;transform:translate(-50%,-55%) scale(1.12)}70%{opacity:1;transform:translate(-50%,-75%) scale(1)}100%{opacity:0;transform:translate(-50%,-100%) scale(.92)}}
+.log-drawer{display:none;position:absolute;left:190px;right:190px;top:46px;bottom:112px;z-index:70;padding:8px;background:rgba(5,10,15,.94);border:1px solid #4c657a;border-radius:12px;box-shadow:0 16px 40px #000b}.log-drawer.show{display:flex;flex-direction:column}.log-drawer-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;font-size:10px;font-weight:1000}.log-drawer-head button{border:1px solid #4b657c;background:#183046;border-radius:7px;padding:4px 8px;font-size:8px;cursor:pointer}.log-panel{flex:1;min-height:0;overflow:auto;padding:6px;background:#0b121a;border-radius:8px;font-size:9px;line-height:1.45}.log-panel p{margin:0 0 2px}.log-panel .sys{color:#8ecbff}.log-panel .damage{color:#ffd0a0}.log-panel .heal{color:#8de3a5}.log-panel .warn{color:#ff9696}
+.overlay{position:fixed;inset:0;background:#05070bd9;display:none;align-items:center;justify-content:center;z-index:200;padding:20px}.overlay.show{display:flex}.result{max-width:440px;width:100%;background:#172535;border:1px solid #58728b;border-radius:16px;padding:22px;text-align:center}.result h2{margin:0 0 8px;font-size:28px}.result p{color:#b3c2ce;font-size:12px}.result button{border:1px solid #9c843c;border-radius:10px;padding:9px 14px;background:#4a3d1b;color:#fff0a2;font-weight:900;cursor:pointer}
+@media(max-height:520px){.topbar{height:44px;flex-basis:44px}.title{font-size:14px}.battle-shell{grid-template-rows:minmax(0,1fr) 88px}.battle-upper{grid-template-columns:150px minmax(0,1fr) 152px;gap:5px}.battle-focus,.battle-commands{padding:5px}.battle-focus-name{font-size:13px}.battle-focus-caption{font-size:7px}.enemy-stage{top:17%;bottom:16%}.battle-message{font-size:9px;min-height:27px}.cmd{min-height:39px;grid-template-columns:23px minmax(0,1fr) auto;padding:4px}.cmd-icon{font-size:16px}.cmd-copy strong{font-size:9px}.cmd-copy small{font-size:6px}.party-card{padding:4px 5px}.party-card-head strong{font-size:9px}.queued-action{font-size:7px}.party-stats{font-size:6px}.fx>span{font-size:38px}.log-drawer{left:160px;right:160px;top:40px;bottom:96px}.roster{gap:5px}.pick-card{padding:4px}.pick-card img{aspect-ratio:1/1.1}.detail{display:none}}
+@media(max-height:430px){.battle-shell{grid-template-rows:minmax(0,1fr) 76px}.battle-upper{grid-template-columns:125px minmax(0,1fr) 132px}.battle-focus-caption{display:none}.cmd{min-height:33px}.cmd-copy small{display:none}.party-stats{display:none}.status-effects{min-height:9px}.mini-row{grid-template-columns:17px minmax(0,1fr) 48px}.enemy-name{font-size:7px}.enemy-hp-num{font-size:7px}.log-drawer{left:134px;right:138px;bottom:84px}}
+</style></head><body>
+<div id="rotateNotice"><div class="card"><span class="phone">📱</span><strong>端末を横向きにしてください</strong><p>この試作はスマホ横画面を基準にしています。</p></div></div>
 <div id="app">
-  <div class="topbar"><div class="title">魔物娘ファクトリー <span style="color:var(--muted);font-weight:600">戦闘試作</span></div><div class="badge">v0.1 / 6キャラ</div></div>
-
-  <section id="selectScreen" class="screen active">
-    <div class="instructions panel">
-      <p><b>味方にする3体を選択。</b> 残り3体が敵になります。<br>この版では基礎バランスを見るため、性格・個体差はOFFです。</p>
-      <label class="toggle"><input id="twoSkillMode" type="checkbox"> 本番想定：各キャラ3スキルから2つ抽選</label>
-    </div>
-    <div id="roster" class="roster"></div>
-    <div class="select-footer"><button id="randomPick" class="secondary">ランダム3体</button><button id="startBattle" class="primary" disabled>この3体で戦う</button></div>
-  </section>
-
-  <section id="battleScreen" class="screen">
-    <div class="battle-head"><div class="side-title">味方</div><div id="turnChip" class="turn-chip">TURN 1</div><div class="side-title enemy">敵</div></div>
-    <div class="arena">
-      <div id="enemyRow" class="team-row"></div>
-      <div id="battleLog" class="log-panel"></div>
-      <div id="allyRow" class="team-row"></div>
-    </div>
-    <div class="command-panel">
-      <div id="actorBox" class="actor-box"></div>
-      <div id="commands" class="commands"></div>
-      <div class="turn-actions">
-        <button id="clearPlan" class="secondary">入力クリア</button>
-        <button id="executeTurn" class="primary" disabled>ターン開始</button>
-      </div>
-    </div>
-  </section>
+<header class="topbar"><div class="title">魔物娘ファクトリー <small>戦闘試作</small></div><div class="grow"></div><div class="speed-box"><span>速度</span><button class="speed-btn" data-speed="0.75">ゆっくり</button><button class="speed-btn active" data-speed="1">標準</button><button class="speed-btn" data-speed="1.5">速い</button><button class="speed-btn" data-speed="2">高速</button></div><div class="version">DEV v0.2</div></header>
+<section id="selectScreen" class="screen active"><div class="instructions"><p><b>味方にする3体を選択。</b> 残り3体が敵になります。<br>戦闘演出とUI確認用の版です。性格・個体差はまだOFF。</p><label class="toggle"><input id="twoSkillMode" type="checkbox"> 本番想定：3スキルから2つ抽選</label></div><div id="roster" class="roster"></div><div class="select-footer"><button id="randomPick" class="secondary">ランダム3体</button><button id="startBattle" class="primary" disabled>この3体で戦う</button></div></section>
+<section id="battleScreen" class="screen"><div class="battle-shell"><div class="battle-upper">
+<aside class="battle-focus"><div class="battle-focus-title">ACTION SELECT</div><div class="battle-focus-name" id="battleActorName">---</div><div class="battle-focus-portrait" id="battleActorPortrait"></div><div class="battle-focus-caption" id="battleActorCaption">行動を選択してください</div></aside>
+<section class="battle-field" id="battleField"><div class="battle-area-label">⚔ 3 VS 3 BATTLE</div><div id="turnChip" class="turn-chip">TURN 1</div><div id="orderStrip" class="order-strip"></div><div id="enemyRow" class="enemy-stage"></div><button type="button" class="log-btn" onclick="toggleLog()">LOG</button><div id="battleMessage" class="battle-message">味方3体の行動を選んでください。</div></section>
+<aside class="battle-commands"><h3>COMMAND</h3><div id="commands" class="command-grid"></div><div class="turn-actions"><button id="clearPlan">入力クリア</button><button id="executeTurn" class="execute">ターン開始</button></div></aside>
+</div><div id="allyRow" class="battle-party-row"></div><div id="battleFxLayer" class="battle-global-fx"></div><div id="battleLogDrawer" class="log-drawer"><div class="log-drawer-head"><span>BATTLE LOG</span><button type="button" onclick="toggleLog()">閉じる</button></div><div id="battleLog" class="log-panel"></div></div></div></section>
 </div>
-
-<div id="resultOverlay" class="overlay"><div class="result"><h2 id="resultTitle"></h2><p id="resultText"></p><button id="backToSelect" class="primary">編成選択へ戻る</button></div></div>
-
+<div id="resultOverlay" class="overlay"><div class="result"><h2 id="resultTitle"></h2><p id="resultText"></p><button id="backToSelect">選出画面へ戻る</button></div></div>
 <script>
 'use strict';
 const IMG = {
@@ -142,6 +80,17 @@ let selected=new Set();
 let battle=null;
 let selectedActorId=null;
 let pendingCommand=null;
+let battleFocusUid=null;
+let battleSpeed=1;
+const BASE_TIME={lead:360,hit:520,short:420,between:260,end:380};
+const scaledWait=ms=>wait(Math.max(40,ms/battleSpeed));
+const SKILL_ICON={normal:'⚔️',bodySlam:'💥',allGuard:'🛡️',regeneration:'💚',polish:'✨',bite:'🦷',howl:'📣',heal:'💚',ice:'❄️',fairyHeal:'🌟',cure:'✚',sticky:'🫧',mount:'🛡️',quick:'⚡',poison:'☠️',stop:'⏸️',lightArrow:'☀️',raise:'🕊️',sealArrow:'🏹'};
+function skillIcon(id){return SKILL_ICON[id]||'✨'}
+function setMessage(text){const el=document.getElementById('battleMessage');if(el)el.textContent=text}
+function setSpeed(v){battleSpeed=Number(v)||1;document.querySelectorAll('.speed-btn').forEach(b=>b.classList.toggle('active',Number(b.dataset.speed)===battleSpeed))}
+document.querySelectorAll('.speed-btn').forEach(b=>b.onclick=()=>setSpeed(b.dataset.speed));
+function toggleLog(){document.getElementById('battleLogDrawer')?.classList.toggle('show')}
+
 
 function renderRoster(){
   const root=document.getElementById('roster');root.innerHTML='';
@@ -166,9 +115,10 @@ function makeUnit(c,side,index){
 function startBattle(){
   const allies=CHARACTERS.filter(c=>selected.has(c.id)).map((c,i)=>makeUnit(c,'ally',i));
   const enemies=CHARACTERS.filter(c=>!selected.has(c.id)).map((c,i)=>makeUnit(c,'enemy',i));
-  battle={turn:1,allies,enemies,log:[],busy:false,over:false};selectedActorId=allies[0].uid;pendingCommand=null;
+  battle={turn:1,allies,enemies,log:[],busy:false,over:false,order:[],currentActorUid:null};selectedActorId=allies[0].uid;battleFocusUid=allies[0].uid;pendingCommand=null;
+  document.body.classList.add('battle-mode');
   document.getElementById('selectScreen').classList.remove('active');document.getElementById('battleScreen').classList.add('active');
-  log('戦闘開始。味方3体の行動を選んでください。','sys');renderBattle();
+  log('戦闘開始。味方3体の行動を選んでください。','sys');setMessage('味方3体の行動を選んでください。');renderBattle();
 }
 function allUnits(){return [...battle.allies,...battle.enemies]}
 function sideUnits(side){return side==='ally'?battle.allies:battle.enemies}
@@ -190,39 +140,74 @@ function statusTags(u){
 }
 function renderBattle(){
   document.getElementById('turnChip').textContent=`TURN ${battle.turn}`;
-  renderTeam('enemyRow',battle.enemies);renderTeam('allyRow',battle.allies);renderLog();renderCommandPanel();
+  renderEnemyStage();renderPartyStatus();renderActorFocus();renderLog();renderCommandPanel();renderOrderStrip();
 }
-function renderTeam(id,units){
-  const root=document.getElementById(id);root.innerHTML='';
-  units.forEach(u=>{
-    const div=document.createElement('div');
+function renderOrderStrip(){
+  const el=document.getElementById('orderStrip');if(!el)return;
+  if(!battle?.order?.length){el.innerHTML='<span class="order-hint">行動順：ターン開始時に素早さ±10%で決定</span>';return}
+  el.innerHTML=battle.order.map((x,i)=>`<span class="order-chip ${battle.currentActorUid===x.uid?'current':''} ${getUnit(x.uid)?.dead?'out':''}">${i+1}. ${escapeHtml(x.name)}</span>`).join('');
+}
+function renderEnemyStage(){
+  const root=document.getElementById('enemyRow');root.innerHTML='';
+  const enemies=battle.enemies;
+  root.dataset.count=String(Math.max(1,enemies.length));
+  enemies.forEach(u=>{
     const targetable=pendingCommand&&isValidTarget(u,pendingCommand);
-    div.className=`unit-card ${u.dead?'dead ':''}${u.uid===selectedActorId?'active ':''}${targetable?'targetable ':''}${u.isSummon?'summon ':''}`;
-    const pct=clamp(u.hp/u.maxHp*100,0,100);const tags=statusTags(u).map(([x,c])=>`<span class="status-tag ${c}">${x}</span>`).join('');
-    const plan=u.planned?`<div class="planned">予約: ${u.planned.label}</div>`:'';
-    div.innerHTML=`<div class="portrait"><img src="${u.img}" alt="${u.name}">${plan}</div><div class="unit-info"><div class="unit-name">${u.name}${u.isSummon?'・分裂体':''}</div><div class="unit-sub">${u.family}${u.isSummon?'':' ['+u.rank+']'}</div><div class="hpbar"><div class="hpfill ${pct<30?'low':''}" style="width:${pct}%"></div></div><div class="hptext">${Math.ceil(u.hp)} / ${u.maxHp}</div><div class="battle-stats">攻${Math.round(effectiveStat(u,'atk'))} 防${Math.round(effectiveStat(u,'def'))} 速${Math.round(effectiveStat(u,'spd'))}</div><div class="status-line">${tags}</div></div>`;
-    div.onclick=()=>onUnitClick(u);root.appendChild(div);
+    const d=document.createElement('button');d.type='button';
+    d.className=`enemy-unit ${u.dead?'dead ':''}${targetable?'targetable ':''}${battle.currentActorUid===u.uid?'acting ':''}`;
+    d.dataset.uid=u.uid;
+    const pct=clamp(u.hp/u.maxHp*100,0,100);const tags=statusTags(u).map(([x,c])=>`<span class="enemy-status ${c}">${x}</span>`).join('');
+    d.innerHTML=`<div class="enemy-art"><img src="${u.img}" alt="${u.name}"></div><div class="enemy-status-line">${tags}</div><div class="enemy-name">${escapeHtml(u.name)}${u.isSummon?'・分裂体':''}</div><div class="enemy-hp-num">${Math.ceil(u.hp)} / ${u.maxHp}</div><div class="enemy-hp-wrap"><i style="width:${pct}%"></i></div>`;
+    d.onclick=()=>onUnitClick(u);root.appendChild(d);
   });
+}
+function renderPartyStatus(){
+  const root=document.getElementById('allyRow');root.innerHTML='';root.dataset.count=String(Math.max(1,battle.allies.length));
+  battle.allies.forEach(u=>{
+    const targetable=pendingCommand&&isValidTarget(u,pendingCommand);
+    const b=document.createElement('button');b.type='button';b.dataset.uid=u.uid;
+    b.className=`party-card ${u.dead?'dead ':''}${u.uid===selectedActorId&&!battle.busy?'active ':''}${targetable?'targetable ':''}${battle.currentActorUid===u.uid?'acting ':''}${u.isSummon?'summon ':''}`;
+    const pct=clamp(u.hp/u.maxHp*100,0,100);const tags=statusTags(u).map(([x,c])=>`<span class="status-chip ${c}">${x}</span>`).join('');
+    const plan=u.isSummon?'AUTO：通常攻撃':u.dead?'戦闘不能':u.planned?u.planned.label:'未入力';
+    b.innerHTML=`<div class="party-card-head"><strong>${escapeHtml(u.name)}${u.isSummon?'・分裂体':''}</strong><span>${u.dead?'KO':u.uid===selectedActorId&&!battle.busy?'選択中':''}</span></div><div class="status-effects">${tags}</div><div class="queued-action ${u.planned||u.isSummon?'ready':''}">${escapeHtml(plan)}</div><div class="mini-row"><b>HP</b><span class="mini-hp"><i style="width:${pct}%"></i></span><strong>${Math.ceil(u.hp)}/${u.maxHp}</strong></div><div class="party-stats">攻 ${Math.round(effectiveStat(u,'atk'))}　防 ${Math.round(effectiveStat(u,'def'))}　速 ${Math.round(effectiveStat(u,'spd'))}</div>`;
+    b.onclick=()=>onUnitClick(u);root.appendChild(b);
+  });
+}
+function renderActorFocus(){
+  const u=getUnit(battleFocusUid)||getUnit(selectedActorId)||living(battle.allies)[0];
+  const name=document.getElementById('battleActorName'),box=document.getElementById('battleActorPortrait'),cap=document.getElementById('battleActorCaption');
+  if(!u){name.textContent='---';box.innerHTML='';cap.textContent='';return}
+  name.textContent=u.name+(u.isSummon?'・分裂体':'');
+  box.innerHTML=`<img src="${u.img}" alt="${u.name}">`;
+  if(battle.busy&&battle.currentActorUid===u.uid)cap.textContent='行動中';
+  else if(u.dead)cap.textContent='戦闘不能';
+  else cap.textContent=u.passiveText||'行動を選択してください';
 }
 function onUnitClick(u){
   if(battle.busy||battle.over)return;
   if(pendingCommand&&isValidTarget(u,pendingCommand)){assignPendingTarget(u);return}
-  if(u.side==='ally'&&!u.dead&&!u.isSummon){selectedActorId=u.uid;pendingCommand=null;renderBattle()}
+  if(u.side==='ally'&&!u.dead&&!u.isSummon){selectedActorId=u.uid;battleFocusUid=u.uid;pendingCommand=null;renderBattle()}
 }
 function renderCommandPanel(){
-  const actor=getUnit(selectedActorId);const box=document.getElementById('actorBox');const root=document.getElementById('commands');root.innerHTML='';
-  if(!actor||actor.dead){box.innerHTML='<span class="actor-hint">行動可能な味方を選択してください。</span>';return}
-  box.innerHTML=`<div class="actor-name">${actor.name}</div><div>HP ${Math.ceil(actor.hp)}/${actor.maxHp}　攻${Math.round(effectiveStat(actor,'atk'))} 防${Math.round(effectiveStat(actor,'def'))} 速${Math.round(effectiveStat(actor,'spd'))}</div><div class="actor-hint">${actor.passiveText}</div>`;
+  const actor=getUnit(selectedActorId);const root=document.getElementById('commands');root.innerHTML='';
+  const clear=document.getElementById('clearPlan'),exec=document.getElementById('executeTurn');
+  clear.disabled=battle.busy;exec.disabled=!canExecuteTurn()||battle.busy;
+  if(!actor||actor.dead||actor.isSummon){root.innerHTML='<div class="command-empty">行動可能な味方を選択してください。</div>';return}
+  if(pendingCommand){
+    const valid=allUnits().filter(u=>isValidTarget(u,pendingCommand));
+    root.innerHTML=`<div class="target-panel"><strong>${skillIcon(pendingCommand.skill.id)} ${escapeHtml(pendingCommand.skill.name)}</strong><span>${pendingCommand.skill.target==='enemy'?'対象の敵':pendingCommand.skill.target==='deadAlly'?'復活させる味方':'対象の味方'}を選択</span><div class="target-list"></div><button type="button" class="target-back">↩ 戻る</button></div>`;
+    const list=root.querySelector('.target-list');valid.forEach(t=>{const b=document.createElement('button');b.type='button';b.textContent=t.name;b.onclick=()=>assignPendingTarget(t);list.appendChild(b)});
+    root.querySelector('.target-back').onclick=()=>{pendingCommand=null;renderBattle()};return;
+  }
   const normal={id:'normal',name:'通常攻撃',target:'enemy',desc:'威力250・無属性・非魔法。',kind:'normal'};addCommandButton(actor,normal);
   actor.skillIds.forEach(id=>addCommandButton(actor,{id,...SKILLS[id]}));
-  document.getElementById('executeTurn').disabled=!canExecuteTurn()||battle.busy;
-  document.getElementById('clearPlan').disabled=battle.busy;
 }
 function addCommandButton(actor,s){
-  const root=document.getElementById('commands');const b=document.createElement('button');b.className='cmd';const cd=actor.cd[s.id]||0;const sealed=!!actor.statuses.seal&&s.id!=='normal';
+  const root=document.getElementById('commands');const b=document.createElement('button');b.type='button';b.className='cmd';const cd=actor.cd[s.id]||0;const sealed=!!actor.statuses.seal&&s.id!=='normal';
   const noDeadTarget=s.target==='deadAlly'&&!sideUnits(actor.side).some(x=>x.dead&&!x.isSummon);
   b.disabled=actor.dead||cd>0||sealed||noDeadTarget||battle.busy;
-  b.innerHTML=`<strong>${s.name}${s.id==='normal'?'':` [${cd>0?cd:s.ct}]`}</strong><small>${sealed?'封印中':noDeadTarget?'対象なし':cd>0?`あと${cd}`:s.desc}</small>`;
+  const ct=s.id==='normal'?'':`<em>CT ${cd>0?cd:s.ct}</em>`;
+  b.innerHTML=`<span class="cmd-icon">${skillIcon(s.id)}</span><span class="cmd-copy"><strong>${escapeHtml(s.name)}</strong><small>${sealed?'封印中':noDeadTarget?'対象なし':cd>0?`あと${cd}ターン`:escapeHtml(s.desc)}</small></span>${ct}`;
   b.onclick=()=>chooseCommand(actor,s);root.appendChild(b);
 }
 function chooseCommand(actor,s){
@@ -242,30 +227,67 @@ function isValidTarget(u,p){
 function assignPendingTarget(u){const a=getUnit(pendingCommand.actorUid),s=pendingCommand.skill;finalizePlan(a,s,u);pendingCommand=null;renderBattle()}
 function finalizePlan(actor,s,target){
   let label=s.name;if(target)label+=` → ${target.name}`;actor.planned={skillId:s.id,targetUid:target?.uid||null,label};
-  const next=battle.allies.find(u=>!u.dead&&!u.isSummon&&!u.planned);selectedActorId=(next||actor).uid;
+  const next=battle.allies.find(u=>!u.dead&&!u.isSummon&&!u.planned);selectedActorId=(next||actor).uid;battleFocusUid=selectedActorId;
+  setMessage(next?`${next.name}の行動を選択してください。`:'全員の行動を入力しました。ターン開始を押してください。');
 }
 function canExecuteTurn(){return battle.allies.filter(u=>!u.dead&&!u.isSummon).every(u=>!!u.planned)}
-document.getElementById('clearPlan').onclick=()=>{if(!battle||battle.busy)return;battle.allies.forEach(u=>u.planned=null);pendingCommand=null;selectedActorId=living(battle.allies).find(u=>!u.isSummon)?.uid||null;renderBattle()};
+document.getElementById('clearPlan').onclick=()=>{if(!battle||battle.busy)return;battle.allies.forEach(u=>u.planned=null);pendingCommand=null;selectedActorId=living(battle.allies).find(u=>!u.isSummon)?.uid||null;battleFocusUid=selectedActorId;setMessage('入力をクリアしました。');renderBattle()};
 document.getElementById('executeTurn').onclick=executeTurn;
+
+function unitElement(u){return document.querySelector(`[data-uid="${CSS.escape(u.uid)}"]`)}
+function focusAnimate(cls){const el=document.getElementById('battleActorPortrait');if(!el)return;el.classList.remove('actor-attack','actor-cast','actor-buff');void el.offsetWidth;el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),Math.max(180,620/battleSpeed))}
+function spawnFx(kind,symbol,targetEl,label=''){
+  const layer=document.getElementById('battleFxLayer');if(!layer||!targetEl)return;
+  const r=targetEl.getBoundingClientRect(),lr=layer.getBoundingClientRect();const fx=document.createElement('div');fx.className=`fx fx-${kind}`;fx.innerHTML=`<span>${symbol}</span>${label?`<small>${escapeHtml(label)}</small>`:''}`;fx.style.left=`${r.left+r.width/2-lr.left}px`;fx.style.top=`${r.top+r.height*.45-lr.top}px`;layer.appendChild(fx);setTimeout(()=>fx.remove(),Math.max(350,1050/battleSpeed));
+}
+function spawnValue(targetEl,value,kind='damage',label=''){
+  const layer=document.getElementById('battleFxLayer');if(!layer||!targetEl)return;
+  const r=targetEl.getBoundingClientRect(),lr=layer.getBoundingClientRect();const p=document.createElement('div');p.className=`value-pop ${kind}`;p.innerHTML=`${label?`<small>${escapeHtml(label)}</small>`:''}<strong>${kind==='heal'?'+':''}${value}</strong>`;p.style.left=`${r.left+r.width/2-lr.left}px`;p.style.top=`${r.top+r.height*.34-lr.top}px`;layer.appendChild(p);setTimeout(()=>p.remove(),Math.max(350,1000/battleSpeed));
+}
+async function showAction(actor,s){
+  battle.currentActorUid=actor.uid;battleFocusUid=actor.uid;renderBattle();
+  const el=unitElement(actor);if(el)el.classList.add('acting');
+  setMessage(`${actor.name}の「${s.name}」！`);
+  if(actor.side==='ally')focusAnimate(s.kind==='buff'||s.kind==='buffAll'||s.kind==='howl'||s.kind==='debuff'||s.kind==='mount'?'actor-buff':(s.kind==='normal'||s.kind==='damage'||s.kind==='damageStatus'||s.kind==='multiDamage'?'actor-attack':'actor-cast'));
+  await scaledWait(BASE_TIME.lead);
+}
+async function animateHit(target,damage,s,info={}){
+  renderBattle();const el=unitElement(target);if(!el)return;
+  el.classList.add('hit');const fxKind=s.id==='ice'?'ice':s.id==='bite'?'claw':s.id==='bodySlam'?'impact':(s.id==='lightArrow'||s.id==='sealArrow')?'arrow':'slash';const symbol=s.id==='ice'?'❄️':s.id==='bite'?'✦':s.id==='bodySlam'?'💥':s.id==='lightArrow'?'☀️':s.id==='sealArrow'?'🏹':'⚔️';spawnFx(fxKind,symbol,el);
+  let label='';if(info.weak&&!info.resisted)label='WEAK';else if(info.resisted&&!info.weak)label='RESIST';spawnValue(el,damage,'damage',label);
+  setMessage(`${target.name}に ${damage} ダメージ${label?`　${label}!`:''}`);await scaledWait(BASE_TIME.hit);el.classList.remove('hit');
+}
+async function animateHealTarget(target,amount,label='HP回復'){
+  renderBattle();const el=unitElement(target);if(!el)return;el.classList.add('heal-glow');spawnFx('heal','✚',el);spawnValue(el,amount,'heal',label);setMessage(`${target.name}のHPが ${amount} 回復！`);await scaledWait(BASE_TIME.hit);el.classList.remove('heal-glow');
+}
+async function animateBuffTarget(target,label,bad=false){
+  renderBattle();const el=unitElement(target);if(!el)return;el.classList.add(bad?'debuff-glow':'buff-glow');spawnFx(bad?'debuff':'buff',bad?'↓':'↑',el,label);setMessage(`${target.name}：${label}`);await scaledWait(BASE_TIME.short);el.classList.remove('buff-glow','debuff-glow');
+}
+async function animateStatusTarget(target,label,bad=true){
+  renderBattle();const el=unitElement(target);if(!el)return;spawnFx(bad?'status':'buff',bad?'◆':'◇',el,label);setMessage(`${target.name}：${label}`);await scaledWait(BASE_TIME.short);
+}
 
 async function executeTurn(){
   if(!canExecuteTurn()||battle.busy)return;battle.busy=true;pendingCommand=null;
   allUnits().forEach(u=>{u.actionState=u.dead?'canceled':'pending';u.diedThisTurn=false});
   battle.enemies.forEach(aiPlan);battle.allies.filter(u=>u.isSummon&&!u.dead).forEach(u=>u.planned={skillId:'normal',targetUid:pick(living(battle.enemies))?.uid||null,label:'通常攻撃'});
   const actors=living(allUnits()).map(u=>({u,initiative:effectiveStat(u,'spd')*rnd(.9,1.1)})).sort((a,b)=>b.initiative-a.initiative);
-  log(`TURN ${battle.turn}：行動順を決定。`,'sys');renderBattle();await wait(170);
+  battle.order=actors.map(x=>({uid:x.u.uid,name:x.u.name,initiative:x.initiative}));battle.currentActorUid=null;
+  log(`TURN ${battle.turn}：行動順を決定。`,'sys');setMessage(`TURN ${battle.turn}：行動開始！`);renderBattle();await scaledWait(420);
   for(const item of actors){
     if(battle.over)break;const u=item.u;
     if(u.dead){u.actionState='canceled';continue}
     if(u.actionState==='canceled')continue;
-    if(u.statuses.stop?.charges>0){u.statuses.stop.charges--;u.actionState='canceled';log(`${u.name}はストップで行動できない！`,'warn');if(u.statuses.stop.charges<=0)delete u.statuses.stop;renderBattle();await wait(180);continue}
+    battle.currentActorUid=u.uid;battleFocusUid=u.uid;renderBattle();
+    if(u.statuses.stop?.charges>0){u.statuses.stop.charges--;u.actionState='canceled';log(`${u.name}はストップで行動できない！`,'warn');setMessage(`${u.name}はストップで行動できない！`);await animateStatusTarget(u,'STOP',true);if(u.statuses.stop.charges<=0)delete u.statuses.stop;continue}
     let plan=u.planned;if(!plan){u.actionState='done';continue}
-    if(u.statuses.seal&&plan.skillId!=='normal'){u.actionState='canceled';log(`${u.name}は封印されていてスキルを使えない！`,'warn');renderBattle();await wait(160);continue}
-    await resolveAction(u,plan);u.actionState='done';checkBattleEnd();renderBattle();await wait(190);
+    if(u.statuses.seal&&plan.skillId!=='normal'){u.actionState='canceled';log(`${u.name}は封印されていてスキルを使えない！`,'warn');setMessage(`${u.name}は封印されていてスキルを使えない！`);await animateStatusTarget(u,'封印',true);continue}
+    await resolveAction(u,plan);u.actionState='done';checkBattleEnd();renderBattle();await scaledWait(BASE_TIME.between);
   }
   if(!battle.over){await endTurn();checkBattleEnd()}
-  if(!battle.over){battle.turn++;allUnits().forEach(u=>u.planned=null);selectedActorId=living(battle.allies).find(u=>!u.isSummon)?.uid||null;battle.busy=false;renderBattle()}
+  if(!battle.over){battle.turn++;allUnits().forEach(u=>u.planned=null);battle.order=[];battle.currentActorUid=null;selectedActorId=living(battle.allies).find(u=>!u.isSummon)?.uid||null;battleFocusUid=selectedActorId;battle.busy=false;setMessage(`TURN ${battle.turn}：味方3体の行動を選んでください。`);renderBattle()}
 }
+
 function aiPlan(u){
   if(u.dead)return;const avail=u.skillIds.filter(id=>(u.cd[id]||0)<=0&&!u.statuses.seal);let chosen=null,target=null;
   const allies=sideUnits(u.side),foes=opponents(u.side),hurt=living(allies).filter(x=>x.hp/x.maxHp<.62),dead=allies.filter(x=>x.dead&&!x.isSummon);
@@ -292,60 +314,76 @@ async function resolveAction(actor,plan){
   let s=plan.skillId==='normal'?{id:'normal',name:'通常攻撃',kind:'normal',target:'enemy',power:250,damageKind:'normal',element:'none'}:{id:plan.skillId,...SKILLS[plan.skillId]};
   if(s.id!=='normal')actor.cd[s.id]=s.ct;
   let target=plan.targetUid?getUnit(plan.targetUid):null;
-  if(s.target==='enemy'&&(!target||target.dead)){target=pick(living(opponents(actor.side)));if(target)log(`${actor.name}の対象が倒れていたため、${target.name}へ狙いを変更。`,'sys')}
+  if(s.target==='enemy'&&(!target||target.dead)){target=pick(living(opponents(actor.side)));if(target){log(`${actor.name}の対象が倒れていたため、${target.name}へ狙いを変更。`,'sys');setMessage(`${actor.name}は狙いを${target.name}へ変更！`)}}
   if(s.target==='ally'&&(!target||target.dead))target=pick(living(sideUnits(actor.side)));
   if(s.target==='deadAlly'&&(!target||!target.dead)){target=sideUnits(actor.side).find(x=>x.dead&&!x.isSummon)||null}
-  log(`${actor.name}の「${s.name}」！`);
+  log(`${actor.name}の「${s.name}」！`);await showAction(actor,s);
   switch(s.kind){
     case 'normal':await hitDamage(actor,target,s);afterNormalAttack(actor);break;
-    case 'damage':await hitDamage(actor,target,s);if(s.selfRecoil&&!actor.dead){const d=Math.max(1,Math.floor(actor.maxHp*s.selfRecoil));applyRawDamage(actor,d,`${actor.name}は反動で${d}ダメージ。`)}if(s.cancelChance&&target&&!target.dead&&target.actionState==='pending'&&Math.random()<s.cancelChance){target.actionState='canceled';log(`${target.name}の行動をキャンセルした！`,'warn')}break;
-    case 'damageStatus':await hitDamage(actor,target,s);if(target&&!target.dead&&Math.random()<s.chance)applyStatus(target,s.status,{turns:s.duration});break;
+    case 'damage':
+      await hitDamage(actor,target,s);
+      if(s.selfRecoil&&!actor.dead){const d=Math.max(1,Math.floor(actor.maxHp*s.selfRecoil));applyRawDamage(actor,d,`${actor.name}は反動で${d}ダメージ。`);renderBattle();const el=unitElement(actor);if(el){spawnValue(el,d,'recoil','反動');setMessage(`${actor.name}は反動で ${d} ダメージ！`);await scaledWait(BASE_TIME.short)}}
+      if(s.cancelChance&&target&&!target.dead&&target.actionState==='pending'&&Math.random()<s.cancelChance){target.actionState='canceled';log(`${target.name}の行動をキャンセルした！`,'warn');await animateStatusTarget(target,'行動キャンセル',true)}break;
+    case 'damageStatus':
+      await hitDamage(actor,target,s);if(target&&!target.dead){if(Math.random()<s.chance){const ok=applyStatus(target,s.status,{turns:s.duration});if(ok)await animateStatusTarget(target,s.status==='seal'?'封印':'状態異常',true)}else{log(`${target.name}には封印が効かなかった。`,'sys');setMessage(`${target.name}には封印が効かなかった。`);await scaledWait(BASE_TIME.short)}}break;
     case 'multiDamage':{const ts=living(opponents(actor.side)).slice().sort(()=>Math.random()-.5).slice(0,s.count);for(const t of ts){await hitDamage(actor,t,s);checkBattleEnd();if(battle.over)break}break}
-    case 'heal':heal(target,target.maxHp*s.amount,`${target.name}のHPが回復した。`);break;
-    case 'healAll':living(sideUnits(actor.side)).forEach(t=>heal(t,t.maxHp*s.amount,`${t.name}のHPが回復した。`));break;
-    case 'selfHeal':{const others=living(sideUnits(actor.side)).some(x=>x.uid!==actor.uid&&x.family==='スライム');heal(actor,actor.maxHp*(others ? .70 : .50),`${actor.name}は自己再生した。`);break}
-    case 'buff':applyBuff(target,s);break;
-    case 'buffAll':living(sideUnits(actor.side)).forEach(t=>applyBuff(t,s));break;
-    case 'debuff':applyDebuff(target,s);break;
-    case 'howl':living(opponents(actor.side)).filter(t=>t.actionState==='pending').forEach(t=>applyDebuff(t,{...s,stat:'atk',amount:-.35,duration:1,buffId:'howl'}));break;
-    case 'poison':if(Math.random()<s.chance)applyStatus(target,'poison',{turns:s.duration});else log(`${target.name}には毒が効かなかった。`,'sys');break;
-    case 'stop':applyStatus(target,'stop',{charges:s.charges});break;
-    case 'curePoison':if(target.statuses.poison){delete target.statuses.poison;log(`${target.name}の毒が治った。`,'heal')}else log(`${target.name}は毒状態ではない。`,'sys');break;
-    case 'mount':target.mount=true;log(`${target.name}にマウントを付与。`,'heal');break;
-    case 'raise':if(target?.dead){target.dead=false;target.hp=Math.max(1,Math.round(target.maxHp*s.amount));target.actionState='canceled';log(`${target.name}がHP${target.hp}で復活した！`,'heal')}break;
+    case 'heal':{const got=heal(target,target.maxHp*s.amount,`${target.name}のHPが回復した。`);if(got>0)await animateHealTarget(target,got);break}
+    case 'healAll':for(const t of living(sideUnits(actor.side))){const got=heal(t,t.maxHp*s.amount,`${t.name}のHPが回復した。`);if(got>0)await animateHealTarget(t,got)}break;
+    case 'selfHeal':{const others=living(sideUnits(actor.side)).some(x=>x.uid!==actor.uid&&x.family==='スライム');const got=heal(actor,actor.maxHp*(others ? .70 : .50),`${actor.name}は自己再生した。`);if(got>0)await animateHealTarget(actor,got,'自己再生');break}
+    case 'buff':applyBuff(target,s);await animateBuffTarget(target,`${s.stat==='atk'?'攻撃':s.stat==='def'?'防御':'素早さ'} +${Math.round(s.amount*100)}%`);break;
+    case 'buffAll':for(const t of living(sideUnits(actor.side))){applyBuff(t,s);await animateBuffTarget(t,`${s.stat==='atk'?'攻撃':s.stat==='def'?'防御':'素早さ'} +${Math.round(s.amount*100)}%`)}break;
+    case 'debuff':{const applied=applyDebuff(target,s);await animateBuffTarget(target,applied===false?'マウントで無効':`${s.stat==='atk'?'攻撃':s.stat==='def'?'防御':'素早さ'} ${Math.round(s.amount*100)}%`,applied!==false);break}
+    case 'howl':{const ts=living(opponents(actor.side)).filter(t=>t.actionState==='pending');for(const t of ts){const applied=applyDebuff(t,{...s,stat:'atk',amount:-.35,duration:1,buffId:'howl'});await animateBuffTarget(t,applied===false?'マウントで無効':'攻撃 -35%',applied!==false)}break}
+    case 'poison':if(Math.random()<s.chance){const ok=applyStatus(target,'poison',{turns:s.duration});if(ok)await animateStatusTarget(target,'毒',true)}else{log(`${target.name}には毒が効かなかった。`,'sys');setMessage(`${target.name}には毒が効かなかった。`);await scaledWait(BASE_TIME.short)}break;
+    case 'stop':{const ok=applyStatus(target,'stop',{charges:s.charges});if(ok)await animateStatusTarget(target,'STOP ×2',true);break}
+    case 'curePoison':if(target.statuses.poison){delete target.statuses.poison;log(`${target.name}の毒が治った。`,'heal');await animateStatusTarget(target,'毒解除',false)}else{log(`${target.name}は毒状態ではない。`,'sys');setMessage(`${target.name}は毒状態ではない。`);await scaledWait(BASE_TIME.short)}break;
+    case 'mount':target.mount=true;log(`${target.name}にマウントを付与。`,'heal');await animateStatusTarget(target,'マウント',false);break;
+    case 'raise':if(target?.dead){target.dead=false;target.hp=Math.max(1,Math.round(target.maxHp*s.amount));target.actionState='canceled';log(`${target.name}がHP${target.hp}で復活した！`,'heal');renderBattle();await animateStatusTarget(target,`復活 HP${target.hp}`,false)}break;
   }
 }
+
 function damageAmount(a,t,s){
-  const atk=effectiveStat(a,'atk'),def=effectiveStat(t,'def');let dmg=s.power*(Math.pow(atk,1.5)/(Math.pow(atk,1.5)+Math.pow(def,1.5)));
-  let mult=1;if(t.weak.includes(s.element))mult*=1.5;if(t.resist.includes(s.element))mult*=.5;if(s.damageKind==='physical'&&t.resist.includes('physical'))mult*=.5;
-  if(t.passive==='regenSlug'&&s.damageKind!=='physical')mult*=1.15;dmg*=mult*rnd(.9,1.1);return {damage:Math.max(1,Math.round(dmg)),mult};
+  const atk=effectiveStat(a,'atk'),def=effectiveStat(t,'def');
+  let dmg=s.power*(Math.pow(atk,1.5)/(Math.pow(atk,1.5)+Math.pow(def,1.5)));
+  let mult=1;let weak=false,resisted=false;
+  if(t.weak.includes(s.element)){mult*=1.5;weak=true}
+  if(t.resist.includes(s.element)){mult*=.5;resisted=true}
+  if(s.damageKind==='physical'&&t.resist.includes('physical')){mult*=.5;resisted=true}
+  if(t.passive==='regenSlug'&&s.damageKind!=='physical')mult*=1.15;
+  dmg*=mult*rnd(.9,1.1);
+  return {damage:Math.max(1,Math.round(dmg)),mult,weak,resisted};
 }
-async function hitDamage(a,t,s){if(!t||t.dead)return;const {damage,mult}=damageAmount(a,t,s);const hpBefore=t.hp;applyRawDamage(t,damage,`${t.name}に${damage}ダメージ${mult>1.01?'（弱点・増幅）':mult<.99?'（耐性）':''}。`);if(t.passive==='split'&&s.damageKind==='physical'&&hpBefore>0&&Math.random()<.10)trySplit(t);if(t.passive==='pureHunter'&&s.damageKind==='magic'&&s.element!=='pleasure'&&!t.dead&&Math.random()<.20){log(`${t.name}の「清純なる狩人」！ ${a.name}へ反撃。`,'sys');const counter={power:250,damageKind:'normal',element:'none'};const r=damageAmount(t,a,counter);applyRawDamage(a,r.damage,`${a.name}に反撃で${r.damage}ダメージ。`)} }
-function applyRawDamage(t,amt,msg){if(t.dead)return;t.hp=Math.max(0,t.hp-amt);log(msg,'damage');if(t.hp<=0){t.dead=true;t.diedThisTurn=true;t.actionState='canceled';log(`${t.name}は戦闘不能になった。`,'warn')}}
-function heal(t,amt,msg){if(!t||t.dead)return;const before=t.hp;t.hp=Math.min(t.maxHp,t.hp+Math.round(amt));const got=t.hp-before;if(got>0)log(`${msg} +${got}`,'heal')}
-function applyBuff(t,s){if(!t||t.dead)return;const id=s.buffId||s.id;const existing=t.buffs.find(b=>b.id===id);if(existing){existing.duration=Math.max(existing.duration,s.duration);existing.amount=s.amount}else t.buffs.push({id,stat:s.stat,amount:s.amount,duration:s.duration});log(`${t.name}の${s.stat==='atk'?'攻撃':s.stat==='def'?'防御':'素早さ'}が${Math.abs(s.amount*100)}%上昇。`,'heal')}
-function applyDebuff(t,s){if(!t||t.dead)return;if(t.mount){t.mount=false;log(`${t.name}のマウントがデバフを無効化した！`,'sys');return}const id=s.buffId||s.id;const existing=t.buffs.find(b=>b.id===id);if(existing){existing.duration=Math.max(existing.duration,s.duration);existing.amount=s.amount}else t.buffs.push({id,stat:s.stat,amount:s.amount,duration:s.duration});log(`${t.name}の${s.stat==='atk'?'攻撃':s.stat==='def'?'防御':'素早さ'}が${Math.abs(s.amount*100)}%低下。`,'warn')}
+async function hitDamage(a,t,s){
+  if(!t||t.dead)return;const info=damageAmount(a,t,s);const hpBefore=t.hp;applyRawDamage(t,info.damage,`${t.name}に${info.damage}ダメージ。`);await animateHit(t,info.damage,s,info);
+  if(t.passive==='split'&&s.damageKind==='physical'&&hpBefore>0&&Math.random()<.10){if(trySplit(t)){renderBattle();setMessage(`${t.name}が分裂！ HP100のコピーが現れた。`);await scaledWait(BASE_TIME.short)}}
+  if(t.passive==='pureHunter'&&s.damageKind==='magic'&&s.element!=='pleasure'&&!t.dead&&Math.random()<.20){log(`${t.name}の「清純なる狩人」！ ${a.name}へ反撃。`,'sys');setMessage(`${t.name}の「清純なる狩人」！ 反撃！`);battleFocusUid=t.uid;renderBattle();await scaledWait(BASE_TIME.lead);const counter={id:'normal',power:250,damageKind:'normal',element:'none'};const r=damageAmount(t,a,counter);applyRawDamage(a,r.damage,`${a.name}に反撃で${r.damage}ダメージ。`);await animateHit(a,r.damage,counter,r)}
+}
+function applyRawDamage(t,amt,msg){if(t.dead)return 0;const before=t.hp;t.hp=Math.max(0,t.hp-amt);const got=before-t.hp;log(msg,'damage');if(t.hp<=0){t.dead=true;t.diedThisTurn=true;t.actionState='canceled';log(`${t.name}は戦闘不能になった。`,'warn')}return got}
+function heal(t,amt,msg){if(!t||t.dead)return 0;const before=t.hp;t.hp=Math.min(t.maxHp,t.hp+Math.round(amt));const got=t.hp-before;if(got>0)log(`${msg} +${got}`,'heal');return got}
+function applyBuff(t,s){if(!t||t.dead)return false;const id=s.buffId||s.id;const existing=t.buffs.find(b=>b.id===id);if(existing){existing.duration=Math.max(existing.duration,s.duration);existing.amount=s.amount}else t.buffs.push({id,stat:s.stat,amount:s.amount,duration:s.duration});log(`${t.name}の${s.stat==='atk'?'攻撃':s.stat==='def'?'防御':'素早さ'}が${Math.abs(s.amount*100)}%上昇。`,'heal');return true}
+function applyDebuff(t,s){if(!t||t.dead)return false;if(t.mount){t.mount=false;log(`${t.name}のマウントがデバフを無効化した！`,'sys');return false}const id=s.buffId||s.id;const existing=t.buffs.find(b=>b.id===id);if(existing){existing.duration=Math.max(existing.duration,s.duration);existing.amount=s.amount}else t.buffs.push({id,stat:s.stat,amount:s.amount,duration:s.duration});log(`${t.name}の${s.stat==='atk'?'攻撃':s.stat==='def'?'防御':'素早さ'}が${Math.abs(s.amount*100)}%低下。`,'warn');return true}
 function applyStatus(t,type,data){if(!t||t.dead)return false;if(t.mount){t.mount=false;log(`${t.name}のマウントが状態異常を無効化した！`,'sys');return false}if(type==='poison'){t.statuses.poison={turns:data.turns};log(`${t.name}は毒状態になった。`,'warn')}if(type==='seal'){t.statuses.seal={turns:data.turns};log(`${t.name}は封印状態になった。`,'warn')}if(type==='stop'){t.statuses.stop={charges:data.charges};log(`${t.name}はストップ状態になった。`,'warn')}return true}
-function afterNormalAttack(a){if(a.passive==='swiftDog'){a.normalCount++;if(a.normalCount%2===0&&a.swiftStacks<3){a.swiftStacks++;log(`${a.name}の俊敏わんこ！ 素早さ+20%（${a.swiftStacks}/3）。`,'heal')}}}
-function trySplit(slime){const team=sideUnits(slime.side);if(team.some(x=>x.isSummon&&x.templateId==='slime'&&!x.dead))return;const c=CHARACTERS.find(x=>x.id==='slime');const s=makeUnit(c,slime.side,team.length);s.uid=`${slime.side}_slimecopy_${Math.random().toString(36).slice(2,6)}`;s.name='スライム娘';s.maxHp=100;s.hp=100;s.skillIds=[];s.passive=null;s.isSummon=true;s.actionState='canceled';team.push(s);log(`${slime.name}が分裂！ HP100のコピーが現れた。`,'sys')}
+function afterNormalAttack(a){if(a.passive==='swiftDog'){a.normalCount++;if(a.normalCount%2===0&&a.swiftStacks<3){a.swiftStacks++;log(`${a.name}の俊敏わんこ！ 素早さ+20%（${a.swiftStacks}/3）。`,'heal');setMessage(`${a.name}の俊敏わんこ！ 素早さ+20%（${a.swiftStacks}/3）`)}}}
+function trySplit(slime){const team=sideUnits(slime.side);if(team.some(x=>x.isSummon&&x.templateId==='slime'&&!x.dead))return false;const c=CHARACTERS.find(x=>x.id==='slime');const s=makeUnit(c,slime.side,team.length);s.uid=`${slime.side}_slimecopy_${Math.random().toString(36).slice(2,6)}`;s.name='スライム娘';s.maxHp=100;s.hp=100;s.skillIds=[];s.passive=null;s.isSummon=true;s.actionState='canceled';team.push(s);log(`${slime.name}が分裂！ HP100のコピーが現れた。`,'sys');return true}
 
 async function endTurn(){
-  log('ターン終了処理。','sys');
-  for(const u of living(allUnits())){
-    if(u.statuses.poison){const d=Math.max(1,Math.floor(u.maxHp*.08));applyRawDamage(u,d,`${u.name}は毒で${d}ダメージ。`)}
-    if(!u.dead&&u.passive==='regenSlug')heal(u,u.maxHp*.10,`${u.name}の再生ナメクジ。`);
+  battle.currentActorUid=null;setMessage('ターン終了処理');renderBattle();await scaledWait(220);
+  for(const u of [...living(allUnits())]){
+    if(u.statuses.poison){const d=Math.max(1,Math.floor(u.maxHp*.08));applyRawDamage(u,d,`${u.name}は毒で${d}ダメージ。`);renderBattle();const el=unitElement(u);if(el){spawnFx('status','☠️',el,'毒');spawnValue(el,d,'damage','毒');setMessage(`${u.name}は毒で ${d} ダメージ！`);await scaledWait(BASE_TIME.short)}}
+    if(!u.dead&&u.passive==='regenSlug'){const got=heal(u,u.maxHp*.10,`${u.name}の再生ナメクジ。`);if(got>0){setMessage(`${u.name}の「再生ナメクジ」！`);await animateHealTarget(u,got,'再生')}}
   }
-  for(const u of living(allUnits())){
-    if(u.passive==='fairyHeal'&&Math.random()<.10){const hurt=living(sideUnits(u.side)).filter(x=>x.hp<x.maxHp);if(hurt.length){const t=pick(hurt);log(`${u.name}の「癒しの妖精」！`,'sys');heal(t,t.maxHp*.35,`${t.name}にヒール。`)}}
-    if(u.passive==='timeThread'&&Math.random()<.10){const t=pick(living(sideUnits(u.side)));if(t){log(`${u.name}の「時繰りの糸」！ ${t.name}にクイック。`,'sys');applyBuff(t,{buffId:'quick',stat:'spd',amount:.30,duration:5})}}
+  for(const u of [...living(allUnits())]){
+    if(u.passive==='fairyHeal'&&Math.random()<.10){const hurt=living(sideUnits(u.side)).filter(x=>x.hp<x.maxHp);if(hurt.length){const t=pick(hurt);log(`${u.name}の「癒しの妖精」！`,'sys');setMessage(`${u.name}の「癒しの妖精」！`);const got=heal(t,t.maxHp*.35,`${t.name}にヒール。`);if(got>0)await animateHealTarget(t,got,'癒しの妖精')}}
+    if(u.passive==='timeThread'&&Math.random()<.10){const t=pick(living(sideUnits(u.side)));if(t){log(`${u.name}の「時繰りの糸」！ ${t.name}にクイック。`,'sys');applyBuff(t,{buffId:'quick',stat:'spd',amount:.30,duration:5});setMessage(`${u.name}の「時繰りの糸」！`);await animateBuffTarget(t,'素早さ +30%')}}
   }
   allUnits().forEach(u=>{
     Object.keys(u.cd).forEach(k=>u.cd[k]=Math.max(0,u.cd[k]-1));
     u.buffs.forEach(b=>b.duration--);u.buffs=u.buffs.filter(b=>b.duration>0);
     for(const type of ['poison','seal'])if(u.statuses[type]){u.statuses[type].turns--;if(u.statuses[type].turns<=0){delete u.statuses[type];log(`${u.name}の${type==='poison'?'毒':'封印'}が解除された。`,'sys')}}
   });
-  renderBattle();await wait(180);
+  renderBattle();await scaledWait(BASE_TIME.end);
 }
+
 function checkBattleEnd(){
   const a=living(battle.allies),e=living(battle.enemies);if(a.length&&e.length)return false;
   battle.over=true;battle.busy=false;const win=a.length>0;document.getElementById('resultTitle').textContent=win?'勝利！':'敗北…';document.getElementById('resultText').textContent=`${battle.turn}ターン目で戦闘終了。数値・CT・技の使用感を確認してみてください。`;document.getElementById('resultOverlay').classList.add('show');return true;
@@ -354,8 +392,6 @@ function log(text,cls=''){battle.log.push({text,cls});if(battle.log.length>160)b
 function renderLog(){const r=document.getElementById('battleLog');r.innerHTML=battle.log.map(x=>`<p class="${x.cls}">${escapeHtml(x.text)}</p>`).join('');r.scrollTop=r.scrollHeight}
 function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function wait(ms){return new Promise(r=>setTimeout(r,ms))}
-document.getElementById('backToSelect').onclick=()=>{document.getElementById('resultOverlay').classList.remove('show');document.getElementById('battleScreen').classList.remove('active');document.getElementById('selectScreen').classList.add('active');battle=null;selectedActorId=null;pendingCommand=null;renderRoster()};
+document.getElementById('backToSelect').onclick=()=>{document.body.classList.remove('battle-mode');document.getElementById('resultOverlay').classList.remove('show');document.getElementById('battleScreen').classList.remove('active');document.getElementById('selectScreen').classList.add('active');document.getElementById('battleLogDrawer')?.classList.remove('show');battle=null;selectedActorId=null;battleFocusUid=null;pendingCommand=null;renderRoster()};
 renderRoster();
-</script>
-</body>
-</html>
+</script></body></html>
