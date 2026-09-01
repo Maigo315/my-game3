@@ -3,340 +3,204 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>魔物娘ローグライク Ver.0.01 戦闘試作</title>
+<title>魔物娘ローグライク Ver.0.02 探索試作</title>
 <style>
-  :root {
-    --bg:#0c1420; --panel:#152437; --panel2:#101b29; --line:#35516a;
-    --text:#eef5fb; --muted:#9eb0c0; --accent:#f3d66d; --hp:#64d497;
-    --mp:#77a8ff; --danger:#ff7c7c; --friend:#f2a6d7; --fatigue:#e6a95f;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;background:radial-gradient(circle at 70% 10%,#18304a 0,#0c1420 44%,#08101a 100%);color:var(--text);font-family:system-ui,-apple-system,"Hiragino Sans","Yu Gothic UI","Yu Gothic",sans-serif;min-height:100vh}
-  button,select{font:inherit}
-  button{cursor:pointer}
-  .wrap{max-width:1180px;margin:0 auto;padding:18px}
-  header{display:flex;justify-content:space-between;align-items:end;gap:16px;margin-bottom:14px}
-  h1{font-size:clamp(20px,3vw,30px);margin:0}.sub{color:var(--muted);font-size:13px;margin-top:4px}
-  .badge{border:1px solid #856f24;background:#3c3516;color:#ffe999;padding:8px 12px;border-radius:999px;font-weight:800;white-space:nowrap}
-  .grid{display:grid;grid-template-columns:320px 1fr;gap:14px}
-  .card{background:rgba(18,31,47,.93);border:1px solid var(--line);border-radius:18px;box-shadow:0 12px 35px rgba(0,0,0,.24)}
-  .sidebar{padding:14px;display:flex;flex-direction:column;gap:12px}
-  .section{background:var(--panel2);border:1px solid #29445a;border-radius:14px;padding:12px}
-  .section h2{font-size:15px;margin:0 0 10px;color:#dce8f2}
-  .statline{display:grid;grid-template-columns:58px 1fr 68px;gap:8px;align-items:center;font-size:13px;margin:7px 0}
-  .bar{height:9px;background:#25384a;border-radius:99px;overflow:hidden}.bar>i{display:block;height:100%;border-radius:99px;transition:width .2s}
-  .hp{background:var(--hp)} .hun{background:var(--accent)} .fr{background:var(--friend)} .fat{background:var(--fatigue)}
-  .small{font-size:12px;color:var(--muted)}
-  .dev-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.check{display:flex;gap:7px;align-items:flex-start;border:1px solid #304b63;padding:8px;border-radius:10px;background:#132236;font-size:12px}.check input{margin-top:2px}
-  .main{padding:14px;min-height:720px;display:flex;flex-direction:column}
-  .toprow{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px}
-  .selectrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  select{background:#0e1a27;color:var(--text);border:1px solid #3c5b73;border-radius:10px;padding:8px 10px}
-  .primary,.ghost,.dangerbtn{border-radius:11px;padding:9px 12px;border:1px solid #56728b;background:#1c3450;color:var(--text);font-weight:700}
-  .primary{background:#6b5719;border-color:#c5a941;color:#fff0a9}.dangerbtn{background:#51282b;border-color:#9a4c53}
-  .primary:disabled,.ghost:disabled,.dangerbtn:disabled,.action:disabled{opacity:.4;cursor:not-allowed}
-  .battlefield{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;min-height:260px;align-items:stretch}
-  .enemy{position:relative;border:1px solid #3a556e;background:linear-gradient(180deg,#1b3046,#122235);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:8px;transition:.15s;min-height:240px}
-  .enemy.selected{outline:3px solid var(--accent);transform:translateY(-2px)}.enemy.dead{opacity:.35;filter:grayscale(.8)}
-  .enemy .portrait{font-size:54px;text-align:center;line-height:1.1;margin-top:4px}.enemy h3{margin:0;text-align:center;font-size:17px}.enemy .tags{display:flex;flex-wrap:wrap;gap:5px;justify-content:center}.tag{font-size:11px;border:1px solid #46637b;border-radius:999px;padding:3px 7px;color:#d5e4ef;background:#102033}.tag.charm{border-color:#aa5f94;color:#ffc8ec}.tag.sleep{border-color:#6f76b3;color:#d7d8ff}.tag.new{border-color:#6b956f;color:#d7ffda}
-  .enemy button{margin-top:auto;background:#162b40;color:#eaf3f9;border:1px solid #44647d;border-radius:9px;padding:7px}
-  .enemy button:hover{background:#1e3a56}
-  .message{margin:12px 0;border:1px solid #425f76;border-radius:13px;background:#0d1b29;padding:10px 12px;color:#dce8f1;min-height:44px}
-  .controls{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.action{border:1px solid #405e77;background:#162d44;color:#eef6fb;border-radius:11px;padding:11px 8px;font-weight:750}.action:hover{background:#203e5c}.action.special{border-color:#887039;background:#3b3217;color:#ffe9a0}.action.friend{border-color:#8e5d84;background:#3f2440;color:#ffd7f2}
-  .drawer{margin-top:9px;border:1px solid #3b566d;border-radius:12px;background:#0f1d2c;padding:10px;display:none}.drawer.show{display:block}.drawer h3{font-size:13px;margin:0 0 8px}.itemgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.itembtn{border:1px solid #3e5d75;background:#142940;color:var(--text);border-radius:9px;padding:8px;text-align:left}.itembtn span{display:block;color:var(--muted);font-size:11px;margin-top:2px}
-  .log{margin-top:12px;flex:1;min-height:220px;max-height:280px;overflow:auto;border-top:1px solid #29465c;padding-top:10px}.logline{font-size:12px;color:#c7d5df;padding:4px 2px;border-bottom:1px dotted rgba(100,130,150,.18)}.logline strong{color:#fff}.logline.good{color:#b8f6d1}.logline.bad{color:#ffb0b0}.logline.info{color:#b9d8ff}
-  .result{display:none;margin-top:12px;border:1px solid #806d35;border-radius:14px;background:#2a2617;padding:14px}.result.show{display:block}.result h2{margin:0 0 6px;color:#ffe99c}.result p{margin:5px 0;color:#ded8bd}
-  .footer-note{font-size:11px;color:#7f93a6;margin-top:10px}
-  @media(max-width:850px){.grid{grid-template-columns:1fr}.main{min-height:auto}.battlefield{grid-template-columns:1fr}.controls{grid-template-columns:repeat(2,1fr)}.sidebar{order:2}}
+:root{
+  --bg:#09131e;--panel:#142437;--panel2:#0f1c2b;--line:#35536c;--text:#edf5fb;--muted:#9fb2c2;
+  --accent:#f1d36b;--hp:#62d395;--friend:#f0a1d1;--danger:#f27c7c;--fat:#e7ac62;--green:#86d79b;
+}
+*{box-sizing:border-box} body{margin:0;min-height:100vh;background:radial-gradient(circle at 75% 5%,#193650,#09131e 46%,#060d15 100%);color:var(--text);font-family:system-ui,-apple-system,"Hiragino Sans","Yu Gothic UI","Yu Gothic",sans-serif}
+button,select{font:inherit} button{cursor:pointer}.wrap{max-width:1280px;margin:0 auto;padding:16px}
+header{display:flex;justify-content:space-between;gap:14px;align-items:end;margin-bottom:12px}h1{font-size:clamp(21px,3vw,31px);margin:0}.sub{color:var(--muted);font-size:12px;margin-top:4px}.badge{border:1px solid #8d7730;background:#3c3316;color:#ffe895;padding:8px 12px;border-radius:999px;font-weight:800}
+.layout{display:grid;grid-template-columns:330px 1fr;gap:12px}.card{background:rgba(18,32,48,.95);border:1px solid var(--line);border-radius:17px;box-shadow:0 12px 34px rgba(0,0,0,.25)}.sidebar{padding:12px;display:flex;flex-direction:column;gap:10px}.section{background:var(--panel2);border:1px solid #29475e;border-radius:13px;padding:11px}.section h2{font-size:14px;margin:0 0 9px;color:#dce9f2}.small{font-size:12px;color:var(--muted);line-height:1.55}.statline{display:grid;grid-template-columns:54px 1fr 70px;gap:7px;align-items:center;font-size:12px;margin:6px 0}.bar{height:9px;background:#263a4c;border-radius:99px;overflow:hidden}.bar>i{height:100%;display:block;border-radius:99px;transition:width .2s}.hp{background:var(--hp)}.hun{background:var(--accent)}.fr{background:var(--friend)}.fat{background:var(--fat)}
+.row{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.mini{padding:6px 8px;border-radius:8px;border:1px solid #49657b;background:#162b40;color:var(--text);font-size:11px}.mini:disabled,.action:disabled,.node:disabled{opacity:.38;cursor:not-allowed}.dev-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.check{display:flex;gap:6px;align-items:flex-start;border:1px solid #304d64;padding:7px;border-radius:9px;background:#132338;font-size:11px}.check input{margin-top:2px}
+.main{min-height:780px;padding:13px;display:flex;flex-direction:column}.topbar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:9px}.titleline{font-weight:800}.dangerbox{min-width:260px}.dangerlabel{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px}.dangerbar{height:8px;background:#283a49;border-radius:99px;overflow:hidden}.dangerbar i{display:block;height:100%;background:linear-gradient(90deg,#68c99b,#e5ca66,#e7905e,#ef7373);transition:width .2s}
+.screen{display:none}.screen.show{display:block}.mapWrap{overflow:auto;border:1px solid #2c4960;background:linear-gradient(180deg,#0c1a29,#0a1623);border-radius:14px;padding:8px}.mapCanvas{position:relative;width:840px;height:480px;margin:0 auto}.mapCanvas svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}.edge{stroke:#3f5c72;stroke-width:3;opacity:.8}.edge.available{stroke:#b8a451}.node{position:absolute;transform:translate(-50%,-50%);width:96px;min-height:60px;border:2px solid #49677e;border-radius:14px;background:#14283b;color:#edf5fb;padding:7px 5px;text-align:center;box-shadow:0 7px 18px rgba(0,0,0,.25)}.node .ico{display:block;font-size:23px;line-height:1}.node .lab{display:block;font-size:11px;margin-top:4px}.node .tiny{display:block;font-size:9px;color:#9fb3c2;margin-top:2px}.node.current{outline:4px solid #f1d36b;border-color:#e4c65e}.node.reachable{border-color:#c9b655;background:#26331d}.node.cleared{opacity:.58}.node.consumed{opacity:.38}.node.locked{filter:saturate(.55)}
+.context{margin-top:9px;border:1px solid #3b596f;background:#0e1c2a;border-radius:12px;padding:10px;min-height:70px}.context h3{font-size:13px;margin:0 0 5px}.message{margin:9px 0;border:1px solid #3e5d74;background:#0d1b29;border-radius:12px;padding:9px 11px;min-height:40px;color:#dae7ef;font-size:13px}.log{margin-top:9px;max-height:180px;overflow:auto;border-top:1px solid #29485d;padding-top:7px}.logline{font-size:11px;color:#c6d5df;padding:3px 2px;border-bottom:1px dotted rgba(100,130,150,.16)}.logline.good{color:#b8f2ce}.logline.bad{color:#ffb0b0}.logline.info{color:#badbff}
+.invlist{display:flex;flex-direction:column;gap:5px}.invrow{border:1px solid #2f4c63;border-radius:9px;padding:6px 7px;background:#132337}.invrow b{font-size:11px}.invrow .small{font-size:10px}.gear{border-color:#6c6140;background:#292719}.equipped{box-shadow:inset 3px 0 #f1d36b}.cap{font-size:11px;color:#c6d7e2;margin-bottom:6px}
+.battlefield{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;min-height:260px}.enemy{border:1px solid #3a566d;background:linear-gradient(180deg,#1b3147,#122337);border-radius:15px;padding:11px;display:flex;flex-direction:column;gap:7px;min-height:238px}.enemy.selected{outline:3px solid var(--accent);transform:translateY(-2px)}.enemy.dead{opacity:.34;filter:grayscale(.8)}.portrait{font-size:50px;text-align:center;line-height:1}.enemy h3{margin:0;text-align:center;font-size:16px}.tags{display:flex;justify-content:center;gap:4px;flex-wrap:wrap}.tag{font-size:10px;border:1px solid #49677e;border-radius:999px;padding:2px 6px}.tag.charm{border-color:#a75e92;color:#ffc9ec}.tag.sleep{border-color:#767bb7;color:#ddddff}.tag.new{border-color:#638e68;color:#d5ffda}.targetbtn{margin-top:auto;border:1px solid #46667e;background:#162c42;color:#eef6fb;border-radius:8px;padding:6px}
+.controls{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.action{border:1px solid #405f77;background:#162d44;color:#eef6fb;border-radius:10px;padding:10px 7px;font-weight:750}.action.special{border-color:#89723b;background:#3b3217;color:#ffe9a0}.action.friend{border-color:#8e5c84;background:#40243f;color:#ffd6f1}.drawer{display:none;margin-top:8px;border:1px solid #3a586f;background:#0e1d2c;border-radius:11px;padding:9px}.drawer.show{display:block}.itemgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.itembtn{border:1px solid #3e5c74;background:#142940;color:var(--text);border-radius:8px;padding:7px;text-align:left}.itembtn span{display:block;font-size:10px;color:var(--muted);margin-top:2px}
+.overlay{display:none;margin-top:10px;border:1px solid #826f36;background:#2c2717;border-radius:13px;padding:12px}.overlay.show{display:block}.overlay h2{margin:0 0 6px;color:#ffe79a;font-size:18px}.runbuttons{display:flex;gap:7px;flex-wrap:wrap}.primary,.ghost,.dangerbtn{border-radius:10px;padding:8px 11px;border:1px solid #58748b;background:#1b3450;color:var(--text);font-weight:700}.primary{background:#685719;border-color:#c0a544;color:#fff0aa}.dangerbtn{background:#51282b;border-color:#9a4c53}.legend{display:flex;gap:8px;flex-wrap:wrap;font-size:10px;color:#a8bac7;margin:6px 0 8px}.footer-note{font-size:10px;color:#7e93a6;margin-top:7px}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{order:2}.main{min-height:auto}.battlefield{grid-template-columns:1fr}.controls{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <div><h1>魔物娘ローグライク</h1><div class="sub">Ver.0.01 戦闘サンドボックス · 加護獲得条件は未実装</div></div>
-    <div class="badge">DEV BATTLE</div>
-  </header>
+<header><div><h1>魔物娘ローグライク</h1><div class="sub">Ver.0.02 探索＋戦闘試作 · 1F〜5F · 加護獲得条件は未実装</div></div><div class="badge">DEV EXPLORE</div></header>
+<div class="layout">
+<aside class="card sidebar">
+  <section class="section"><h2>プレイヤー</h2>
+    <div class="statline"><b>HP</b><div class="bar"><i id="hpbar" class="hp"></i></div><span id="hptext"></span></div>
+    <div class="statline"><b>お腹</b><div class="bar"><i id="hunbar" class="hun"></i></div><span id="huntext"></span></div>
+    <div class="small">Lv <b id="lvtext">1</b>　攻撃 <b id="atktext">5</b>　防御 <b id="deftext">0</b></div>
+    <div class="small">EXP <b id="exptext">0</b>　次Lv <b id="nextExpText">12</b></div><div id="playerstatus" class="small" style="margin-top:5px"></div>
+  </section>
+  <section class="section"><h2>装備・所持品</h2><div id="captext" class="cap"></div><div id="inventory" class="invlist"></div></section>
+  <section class="section"><h2>開発用 加護セット <span class="small">最大3・新規開始時に反映</span></h2>
+    <div class="dev-grid">
+      <label class="check"><input type="checkbox" data-blessing="slime" checked><span><b>スライムジェル</b><br>4回被弾で25%回復</span></label>
+      <label class="check"><input type="checkbox" data-blessing="dog"><span><b>あなほり</b><br>新フロア30%でアイテム</span></label>
+      <label class="check"><input type="checkbox" data-blessing="rabbit" checked><span><b>バニーウィンク</b><br>[A] 3巡魅了</span></label>
+      <label class="check"><input type="checkbox" data-blessing="fairy" checked><span><b>妖精のまもり</b><br>魔法を無効化</span></label>
+    </div><div id="fatigueList" class="small" style="margin-top:7px"></div>
+  </section>
+  <section class="section"><h2>試作メモ</h2><div class="small">乱入率は基本25%。危険度で上昇します。<br>加護獲得条件はまだありません。<br>UI・演出より、1フロアの戦闘回数と資源消耗を確認する版です。</div></section>
+  <button id="newRunBtn" class="dangerbtn">最初からやり直す</button>
+</aside>
+<main class="card main">
+  <div class="topbar"><div class="titleline" id="modeTitle">探索</div><div class="dangerbox"><div class="dangerlabel"><span id="floorText">1F</span><span id="dangerText">安全</span></div><div class="dangerbar"><i id="dangerbar"></i></div></div></div>
 
-  <div class="grid">
-    <aside class="card sidebar">
-      <section class="section">
-        <h2>プレイヤー</h2>
-        <div class="statline"><b>HP</b><div class="bar"><i id="hpbar" class="hp"></i></div><span id="hptext"></span></div>
-        <div class="statline"><b>お腹</b><div class="bar"><i id="hunbar" class="hun"></i></div><span id="huntext"></span></div>
-        <div class="small">攻撃 <b id="atktext">5</b>　防御 <b id="deftext">0</b>　EXP <b id="exptext">0</b></div>
-        <div id="playerstatus" class="small" style="margin-top:7px"></div>
-      </section>
+  <section id="exploreScreen" class="screen show">
+    <div class="legend">● 現在地　◆ 緑枠＝移動可能　魔物娘・アイテム・水晶・鍛冶台などを選択</div>
+    <div class="mapWrap"><div id="mapCanvas" class="mapCanvas"></div></div>
+    <div id="context" class="context"></div>
+  </section>
 
-      <section class="section">
-        <h2>開発用 加護セット <span class="small">（最大3）</span></h2>
-        <div class="dev-grid">
-          <label class="check"><input type="checkbox" data-blessing="slime" checked><span><b>スライムジェル</b><br>4回被弾で25%回復</span></label>
-          <label class="check"><input type="checkbox" data-blessing="dog"><span><b>あなほり</b><br>戦闘外。今回は表示のみ</span></label>
-          <label class="check"><input type="checkbox" data-blessing="rabbit" checked><span><b>バニーウィンク</b><br>[A] 3巡魅了 / 疲労40</span></label>
-          <label class="check"><input type="checkbox" data-blessing="fairy" checked><span><b>妖精のまもり</b><br>魔法無効 / 疲労80</span></label>
-        </div>
-        <div id="fatigueList" class="small" style="margin-top:9px"></div>
-      </section>
+  <section id="battleScreen" class="screen">
+    <div id="battlefield" class="battlefield"></div>
+    <div class="controls" style="margin-top:9px">
+      <button class="action" data-action="attack">⚔ 攻撃</button><button class="action" data-action="item">🧪 アイテム</button><button class="action special" data-action="blessing">✨ 加護 [A]</button><button class="action" data-action="distance">↔ 距離を取る</button>
+      <button class="action" data-action="talk">💬 話しかける</button><button class="action friend" data-action="gift">🎁 プレゼント</button><button class="action friend" data-action="befriend">♡ 友好解決</button><button class="action" data-action="flee">🏃 逃げる</button>
+    </div>
+    <div id="itemDrawer" class="drawer"><div id="itemGrid" class="itemgrid"></div></div>
+    <div id="giftDrawer" class="drawer"><div id="giftGrid" class="itemgrid"></div></div>
+    <div id="blessingDrawer" class="drawer"><div id="blessingGrid" class="itemgrid"></div></div>
+  </section>
 
-      <section class="section">
-        <h2>試作用インベントリ</h2>
-        <div id="inventoryText" class="small"></div>
-      </section>
-
-      <section class="section">
-        <h2>この版で確認したいこと</h2>
-        <div class="small">・通常攻撃が計算しやすいか<br>・「距離を取る」が便利すぎないか<br>・乱入25%が怖すぎないか<br>・友好解決に贈り物を使いたくなるか<br>・魅了と魔法無効が戦術になるか</div>
-      </section>
-    </aside>
-
-    <main class="card main">
-      <div class="toprow">
-        <div class="selectrow">
-          <b>遭遇相手</b>
-          <select id="enemySelect">
-            <option value="slime">スライム娘</option>
-            <option value="dog">犬娘</option>
-            <option value="rabbit">ウサギ娘</option>
-            <option value="fairy">フェアリー</option>
-          </select>
-          <button class="primary" id="startBtn">戦闘開始</button>
-        </div>
-        <div class="small">ターン <b id="turntext">0</b></div>
-      </div>
-
-      <div id="battlefield" class="battlefield"></div>
-      <div id="message" class="message">相手を選んで「戦闘開始」を押してください。</div>
-
-      <div class="controls">
-        <button class="action" data-action="attack">⚔ 攻撃</button>
-        <button class="action" data-action="item">🧪 アイテム</button>
-        <button class="action special" data-action="blessing">✨ 加護 [A]</button>
-        <button class="action" data-action="distance">↔ 距離を取る</button>
-        <button class="action" data-action="talk">💬 話しかける</button>
-        <button class="action friend" data-action="gift">🎁 プレゼント</button>
-        <button class="action friend" data-action="befriend">♡ 友好解決</button>
-        <button class="action" data-action="flee">🏃 逃げる</button>
-      </div>
-
-      <div id="itemDrawer" class="drawer"><h3>アイテムを選択</h3><div id="itemGrid" class="itemgrid"></div></div>
-      <div id="giftDrawer" class="drawer"><h3>プレゼントを選択 <span class="small">（ターン消費なし）</span></h3><div id="giftGrid" class="itemgrid"></div></div>
-      <div id="blessingDrawer" class="drawer"><h3>アクション型加護</h3><div id="blessingGrid" class="itemgrid"></div></div>
-
-      <div id="result" class="result"></div>
-      <div id="log" class="log"></div>
-      <div class="footer-note">※ 数値・確率はVer.0.01の仮置きです。加護は獲得せず、左の開発用チェックで直接セットします。</div>
-    </main>
-  </div>
-</div>
+  <div id="message" class="message">1Fに到着した。</div>
+  <div id="overlay" class="overlay"></div>
+  <div id="log" class="log"></div>
+  <div class="footer-note">※ 数値・確率はすべて試作用。マップ生成も仮実装です。</div>
+</main>
+</div></div>
 <script>
 (() => {
-  const defs = {
-    slime:{name:'スライム娘', icon:'🫧', hp:8, atk:4, def:0, exp:4, gift:'jelly', line:'ぷるぷる……こちらを警戒している。'},
-    dog:{name:'犬娘', icon:'🐾', hp:13, atk:6, def:1, exp:7, gift:'meat', line:'耳を立てて、こちらの様子をうかがっている。'},
-    rabbit:{name:'ウサギ娘', icon:'🐇', hp:11, atk:5, def:0, exp:6, gift:'carrot', line:'今にも跳びかかってきそうだ。', firstStrike:true},
-    fairy:{name:'フェアリー', icon:'🧚', hp:9, atk:4, def:0, exp:7, gift:'flower', line:'きらきらした魔力が指先に集まっている。', magic:true}
-  };
-  const giftDefs = {
-    jelly:{name:'ぷるぷるゼリー', count:2}, meat:{name:'骨付き肉', count:2}, flower:{name:'月光の花', count:2}, carrot:{name:'にんじん菓子', count:2}
-  };
-  const baseItems = {
-    potion:{name:'回復薬', count:2, desc:'HPを15回復'},
-    bread:{name:'小さなパン', count:1, desc:'お腹を25回復'},
-    fire:{name:'火球の杖', count:3, desc:'敵1体に固定8ダメージ'},
-    sleep:{name:'睡眠の書', count:1, desc:'敵全体を2行動分睡眠'}
-  };
-  const state = {
-    active:false, ended:false, turn:0, player:null, enemies:[], selected:0,
-    items:{}, gifts:{}, blessings:{}, log:[], distance:false, newIds:new Set(), nextId:1
-  };
-  const $ = s => document.querySelector(s);
-  const $$ = s => [...document.querySelectorAll(s)];
-  function freshPlayer(){ return {hp:30,maxHp:30,atk:5,def:0,hunger:100,maxHunger:100,exp:0,hasteActions:0,hasteSkip:true,slimeHits:0}; }
-  function readBlessings(){
-    const chosen = $$('#fatigueList').length ? $$('input[data-blessing]:checked').map(x=>x.dataset.blessing) : [];
-    const trimmed = chosen.slice(0,3);
-    $$('input[data-blessing]').forEach(cb=>{ if(chosen.indexOf(cb.dataset.blessing)>=3) cb.checked=false; });
-    return {slime:{on:trimmed.includes('slime'),fatigue:0}, dog:{on:trimmed.includes('dog'),fatigue:0}, rabbit:{on:trimmed.includes('rabbit'),fatigue:0}, fairy:{on:trimmed.includes('fairy'),fatigue:0}};
-  }
-  function makeEnemy(key,isNew=false){
-    const d=defs[key];
-    return {id:state.nextId++,key,name:d.name,icon:d.icon,maxHp:d.hp,hp:d.hp,atk:d.atk,def:d.def,exp:d.exp,friend:0,charm:0,sleep:0,actionCount:0,alive:true,isNew};
-  }
-  function resetDrawers(){ $$('.drawer').forEach(x=>x.classList.remove('show')); }
-  function startBattle(){
-    state.active=true;state.ended=false;state.turn=0;state.player=freshPlayer();state.enemies=[];state.selected=0;state.items=structuredClone(baseItems);state.gifts=structuredClone(giftDefs);state.blessings=readBlessings();state.log=[];state.distance=false;state.newIds.clear();state.nextId=1;
-    const key=$('#enemySelect').value; state.enemies=[makeEnemy(key)];
-    resetDrawers(); $('#result').classList.remove('show'); $('#result').innerHTML='';
-    addLog(`${defs[key].name}と遭遇した。`,'info');
-    setMessage(defs[key].line);
-    if(defs[key].firstStrike){ addLog('ウサギ娘の「先制」！','bad'); enemyPhysicalAttack(state.enemies[0], true); if(!state.ended) addLog('プレイヤーの手番。','info'); }
-    render();
-  }
-  function setMessage(t){ $('#message').textContent=t; }
-  function addLog(t,cls=''){ state.log.push({t,cls}); if(state.log.length>80)state.log.shift(); renderLog(); }
-  function renderLog(){ $('#log').innerHTML=state.log.map(x=>`<div class="logline ${x.cls}">${escapeHtml(x.t)}</div>`).join(''); $('#log').scrollTop=$('#log').scrollHeight; }
-  function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
-  function living(){return state.enemies.filter(e=>e.alive)}
-  function selectedEnemy(){ let e=state.enemies[state.selected]; if(!e||!e.alive){ const idx=state.enemies.findIndex(x=>x.alive); state.selected=Math.max(0,idx); e=state.enemies[state.selected]; } return e; }
-  function render(){
-    const p=state.player||freshPlayer();
-    $('#hpbar').style.width=(100*p.hp/p.maxHp)+'%'; $('#hptext').textContent=`${p.hp}/${p.maxHp}`;
-    $('#hunbar').style.width=(100*p.hunger/p.maxHunger)+'%'; $('#huntext').textContent=`${p.hunger}/${p.maxHunger}`;
-    $('#atktext').textContent=p.atk;$('#deftext').textContent=p.def;$('#exptext').textContent=p.exp;$('#turntext').textContent=state.turn;
-    const sts=[]; if(p.hasteActions>0)sts.push(`倍速：残り${p.hasteActions}行動`); if(p.slimeHits>0)sts.push(`ジェル被弾カウント ${p.slimeHits}/4`); $('#playerstatus').textContent=sts.join(' / ')||'状態異常なし';
-    renderEnemies(); renderInventory(); renderFatigue(); renderButtons(); renderDrawers(); renderLog();
-  }
-  function renderEnemies(){
-    const bf=$('#battlefield');
-    if(!state.active){ bf.innerHTML='<div class="enemy" style="grid-column:1/-1;min-height:260px;justify-content:center;align-items:center;color:#8fa4b6">戦闘開始待ち</div>'; return; }
-    bf.innerHTML=state.enemies.map((e,i)=>{
-      const tags=[]; if(e.charm>0)tags.push(`<span class="tag charm">魅了 ${e.charm}</span>`); if(e.sleep>0)tags.push(`<span class="tag sleep">睡眠 ${e.sleep}</span>`); if(e.isNew)tags.push('<span class="tag new">乱入</span>');
-      return `<div class="enemy ${i===state.selected&&e.alive?'selected':''} ${e.alive?'':'dead'}">
-        <div class="portrait">${e.icon}</div><h3>${escapeHtml(e.name)}${e.alive?'':'（退場）'}</h3>
-        <div class="statline"><b>HP</b><div class="bar"><i class="hp" style="width:${Math.max(0,100*e.hp/e.maxHp)}%"></i></div><span>${Math.max(0,e.hp)}/${e.maxHp}</span></div>
-        <div class="statline"><b>友好</b><div class="bar"><i class="fr" style="width:${e.friend}%"></i></div><span>${e.friend}/100</span></div>
-        <div class="small" style="text-align:center">攻撃 ${e.atk} / 防御 ${e.def} / EXP ${e.exp}</div><div class="tags">${tags.join('')}</div>
-        <button ${e.alive?'':'disabled'} data-target="${i}">${e.alive?'この娘を選択':'退場済み'}</button></div>`;
-    }).join('');
-    $$('[data-target]').forEach(b=>b.onclick=()=>{state.selected=Number(b.dataset.target);resetDrawers();render();setMessage(`${selectedEnemy().name}を対象に選んだ。`);});
-  }
-  function renderInventory(){
-    const it=Object.values(state.items).map(x=>`${x.name}×${x.count}`).join(' / ');
-    const gi=Object.values(state.gifts).map(x=>`${x.name}×${x.count}`).join(' / ');
-    $('#inventoryText').innerHTML=`<b>道具</b><br>${escapeHtml(it)}<br><br><b>贈り物</b><br>${escapeHtml(gi)}`;
-  }
-  function renderFatigue(){
-    const b=state.blessings&&Object.keys(state.blessings).length?state.blessings:readBlessings();
-    const names={slime:'スライムジェル',dog:'あなほり',rabbit:'バニーウィンク',fairy:'妖精のまもり'};
-    $('#fatigueList').innerHTML=Object.keys(b).filter(k=>b[k].on).map(k=>`${names[k]}：疲労 <b>${b[k].fatigue}</b>/100`).join('<br>')||'加護なし';
-  }
-  function renderButtons(){
-    const can=state.active&&!state.ended&&living().length>0;
-    $$('.action').forEach(b=>b.disabled=!can);
-    const e=selectedEnemy();
-    const bef=$('[data-action="befriend"]'); if(bef)bef.disabled=!can||!e||e.friend<100;
-    const flee=$('[data-action="flee"]'); if(flee)flee.disabled=!can||!canFlee();
-    const bless=$('[data-action="blessing"]'); if(bless){const r=state.blessings?.rabbit; bless.disabled=!can||!r?.on||r.fatigue>60;}
-  }
-  function renderDrawers(){
-    $('#itemGrid').innerHTML=Object.entries(state.items).map(([k,x])=>`<button class="itembtn" data-item="${k}" ${x.count<=0?'disabled':''}><b>${escapeHtml(x.name)} ×${x.count}</b><span>${escapeHtml(x.desc)}</span></button>`).join('');
-    $$('[data-item]').forEach(b=>b.onclick=()=>useItem(b.dataset.item));
-    $('#giftGrid').innerHTML=Object.entries(state.gifts).map(([k,x])=>`<button class="itembtn" data-gift="${k}" ${x.count<=0?'disabled':''}><b>${escapeHtml(x.name)} ×${x.count}</b><span>好物なら友好+45 / それ以外+10</span></button>`).join('');
-    $$('[data-gift]').forEach(b=>b.onclick=()=>giveGift(b.dataset.gift));
-    const r=state.blessings?.rabbit;
-    $('#blessingGrid').innerHTML=`<button class="itembtn" data-useblessing="rabbit" ${(!r?.on||r.fatigue>60)?'disabled':''}><b>バニーウィンク</b><span>選択中の敵を3巡魅了 / 疲労+40</span></button>`;
-    $('[data-useblessing="rabbit"]').onclick=()=>useBunny();
-  }
-  function spendTurn(){
-    if(!state.active||state.ended)return false;
-    state.turn++; state.player.hunger=Math.max(0,state.player.hunger-1);
-    if(state.player.hunger===0){state.player.hp=Math.max(0,state.player.hp-1);addLog('空腹でHPが1減った。','bad');if(state.player.hp<=0){lose('空腹で力尽きた。');return false;}}
-    let skipEnemies=false;
-    if(state.player.hasteActions>0){
-      state.player.hasteActions--;
-      if(state.player.hasteSkip){skipEnemies=true;state.player.hasteSkip=false;addLog('倍速により敵の手番より先にもう一度動ける。','good');}
-      else state.player.hasteSkip=true;
-      if(state.player.hasteActions===0)addLog('倍速が切れた。','info');
-    }
-    if(!skipEnemies&&!state.ended) enemyPhase();
-    state.distance=false; state.enemies.forEach(e=>e.isNew=false);
-    render(); return true;
-  }
-  function damageEnemy(e,dmg,source='攻撃'){
-    if(!e||!e.alive)return;
-    e.hp-=dmg; addLog(`${source}！ ${e.name}に${dmg}ダメージ。`,'good');
-    if(e.charm>0 && source==='通常攻撃'){e.charm=0;addLog(`${e.name}の魅了が解けた。`,'info');}
-    if(e.sleep>0){e.sleep=0;addLog(`${e.name}は目を覚ました。`,'info');}
-    if(e.hp<=0){ e.hp=0;e.alive=false;state.player.exp+=e.exp;addLog(`${e.name}を撃破。EXP ${e.exp}を獲得。`,'good');maybeLoot(e,'撃破'); checkVictory(); }
-  }
-  function playerAttack(){ const e=selectedEnemy(); if(!e)return; damageEnemy(e,Math.max(1,state.player.atk-e.def),'通常攻撃'); if(!state.ended)spendTurn(); }
-  function enemyPhysicalAttack(e,opening=false){
-    if(!e.alive||state.ended)return;
-    const dmg=Math.max(1,e.atk-state.player.def);state.player.hp-=dmg;addLog(`${e.name}の攻撃。${dmg}ダメージを受けた。`,'bad');
-    if(state.blessings.slime?.on){state.player.slimeHits++;if(state.player.slimeHits>=4 && state.blessings.slime.fatigue<=85){const heal=Math.max(1,Math.ceil(dmg*.25));state.player.hp=Math.min(state.player.maxHp,state.player.hp+heal);state.player.slimeHits=0;state.blessings.slime.fatigue+=15;addLog(`スライムジェル発動。HPを${heal}回復。疲労+15。`,'good');}}
-    if(state.player.hp<=0)lose(opening?'先制攻撃で倒れた。':'力尽きた。');
-  }
-  function enemyMagicAttack(e){
-    if(state.blessings.fairy?.on && state.blessings.fairy.fatigue<=20){state.blessings.fairy.fatigue+=80;addLog(`妖精のまもり！ ${e.name}の魔法を無効化。疲労+80。`,'good');return;}
-    state.player.hp-=5;addLog(`${e.name}の魔法弾。防御を無視して5ダメージ。`,'bad');if(state.player.hp<=0)lose('魔法に倒れた。');
-  }
-  function enemyPhase(){
-    const snapshot=living();
-    for(const e of snapshot){
-      if(state.ended||!e.alive)continue;
-      if(e.isNew){addLog(`${e.name}は乱入したばかりで、この巡は行動しない。`,'info');continue;}
-      if(e.sleep>0){e.sleep--;addLog(`${e.name}は眠っている。`,'info');continue;}
-      if(e.charm>0){
-        e.charm--; const others=living().filter(x=>x.id!==e.id);
-        if(others.length){const t=others[Math.floor(Math.random()*others.length)];const dmg=Math.max(1,e.atk-t.def);t.hp-=dmg;addLog(`魅了された${e.name}が${t.name}を攻撃。${dmg}ダメージ。`,'good');if(t.hp<=0){t.hp=0;t.alive=false;addLog(`${t.name}は倒れた。魅了による撃破なのでEXPは得られない。`,'info');maybeLoot(t,'魅了による撃破');}}
-        else addLog(`魅了された${e.name}は、ぼんやりして何もしない。`,'info');
-        continue;
-      }
-      e.actionCount++;
-      const willMagic=defs[e.key].magic && e.actionCount%2===0;
-      if(state.distance && !willMagic){addLog(`${e.name}は距離を詰めるため行動を使った。`,'info');continue;}
-      if(willMagic)enemyMagicAttack(e);else enemyPhysicalAttack(e);
-    }
-    checkVictory();
-  }
-  function doDistance(){
-    state.distance=true;addLog('距離を取った。近接攻撃しかできない敵は追跡に行動を使う。','info');
-    if(living().length<3 && Math.random()<0.25){const keys=Object.keys(defs);const k=keys[Math.floor(Math.random()*keys.length)];const n=makeEnemy(k,true);state.enemies.push(n);addLog(`${n.name}が戦闘に乱入した！`,'bad');}
-    else if(living().length<3)addLog('今回は乱入者はいなかった。','info');
-    else addLog('これ以上は乱入できない。','info');
-    spendTurn();
-  }
-  function talk(){
-    const e=selectedEnemy(); if(!e)return;
-    if(e.charm>0){addLog(`魅了中の${e.name}に話しかけ、帰ってもらった。`,'good');e.alive=false;maybeLoot(e,'魅了して帰す');checkVictory();render();return;}
-    const lines={slime:'「……ぷる？」',dog:'「まだ信用したわけじゃないからね！」',rabbit:'「に、逃げないの？」',fairy:'「魔法は得意よ。近づけば安全だなんて思わないことね。」'};
-    setMessage(`${e.name} ${lines[e.key]}`);addLog(`${e.name}に話しかけた。（ターン消費なし）`,'info');render();
-  }
-  function giveGift(key){
-    const e=selectedEnemy();const g=state.gifts[key]; if(!e||!g||g.count<=0)return;
-    g.count--;const gain=e.key===({jelly:'slime',meat:'dog',carrot:'rabbit',flower:'fairy'}[key])?45:10;e.friend=Math.min(100,e.friend+gain);
-    addLog(`${e.name}に${g.name}を渡した。友好度+${gain}。`,'good'); if(e.friend>=100)addLog(`${e.name}はすっかり警戒を解いた。友好解決を選べる。`,'good'); resetDrawers();render();
-  }
-  function befriend(){
-    const e=selectedEnemy();if(!e||e.friend<100)return;const gain=Math.ceil(e.exp*1.5);state.player.exp+=gain;e.alive=false;addLog(`${e.name}と友好解決。EXP ${gain}を獲得。`,'good');maybeLoot(e,'友好解決');addLog('※ 加護は獲得しない。獲得条件は今後検討。','info');checkVictory();render();
-  }
-  function maybeLoot(e,why){
-    if(Math.random()>=0.35){addLog(`${why}のアイテム抽選は外れ。`,'info');return;}
-    const pool=['potion','bread','fire','sleep'];const k=pool[Math.floor(Math.random()*pool.length)];state.items[k].count++;addLog(`${e.name}から${state.items[k].name}を入手した。`,'good');
-  }
-  function canFlee(){return state.player&&(state.player.hasteActions>0||living().every(e=>e.charm>0||e.sleep>0));}
-  function flee(){if(!canFlee())return;addLog('条件を満たしているため、確実に逃走した。','info');endBattle('逃走成功','EXP・アイテムは得られなかった。');}
-  function useItem(k){
-    const x=state.items[k]; if(!x||x.count<=0)return; const e=selectedEnemy();
-    if(k==='potion'){x.count--;const before=state.player.hp;state.player.hp=Math.min(state.player.maxHp,state.player.hp+15);addLog(`回復薬を使用。HP ${state.player.hp-before}回復。`,'good');}
-    if(k==='bread'){x.count--;const before=state.player.hunger;state.player.hunger=Math.min(state.player.maxHunger,state.player.hunger+25);addLog(`小さなパンを食べた。お腹 ${state.player.hunger-before}回復。`,'good');}
-    if(k==='fire'){if(!e)return;x.count--;damageEnemy(e,8,'火球の杖');}
-    if(k==='sleep'){x.count--;living().forEach(t=>t.sleep=2);addLog('睡眠の書を読んだ。敵全体が眠った。','good');}
-    resetDrawers(); if(!state.ended)spendTurn();
-  }
-  function useBunny(){const e=selectedEnemy(),b=state.blessings.rabbit;if(!e||!b?.on||b.fatigue>60)return;e.charm=3;b.fatigue+=40;addLog(`バニーウィンク！ ${e.name}を3巡魅了。疲労+40。`,'good');resetDrawers();spendTurn();}
-  function checkVictory(){if(state.active&&!state.ended&&living().length===0)endBattle('遭遇終了',`獲得EXP：${state.player.exp}`);}
-  function lose(msg){state.player.hp=Math.max(0,state.player.hp);endBattle('ゲームオーバー',msg);}
-  function endBattle(title,body){state.ended=true;const r=$('#result');r.innerHTML=`<h2>${escapeHtml(title)}</h2><p>${escapeHtml(body)}</p><p class="small">上の「戦闘開始」で別の条件を試せます。</p>`;r.classList.add('show');setMessage(body);render();}
+const enemyDefs={
+ slime:{name:'スライム娘',icon:'🫧',hp:8,atk:4,def:0,exp:4,gift:'jelly',line:'ぷるぷる……こちらを警戒している。'},
+ dog:{name:'犬娘',icon:'🐾',hp:13,atk:6,def:1,exp:7,gift:'meat',line:'耳を立てて、こちらの様子をうかがっている。'},
+ rabbit:{name:'ウサギ娘',icon:'🐇',hp:11,atk:5,def:0,exp:6,gift:'carrot',line:'今にも跳びかかってきそうだ。',firstStrike:true},
+ fairy:{name:'フェアリー',icon:'🧚',hp:9,atk:4,def:0,exp:7,gift:'flower',line:'きらきらした魔力が指先に集まっている。',magic:true}
+};
+const gearDefs={
+ wood_stick:{name:'木の棒',cat:'weapon',base:2,maxPlus:20},iron_sword:{name:'鉄の剣',cat:'weapon',base:4,maxPlus:10},great_axe:{name:'大斧',cat:'weapon',base:7,maxPlus:5},
+ wood_shield:{name:'木の盾',cat:'shield',base:2,maxPlus:15},iron_shield:{name:'鉄の盾',cat:'shield',base:4,maxPlus:8},shell_shield:{name:'甲羅の盾',cat:'shield',base:6,maxPlus:4}
+};
+const itemDefs={
+ potion:{name:'回復薬',cat:'薬',desc:'HP15回復'},antidote:{name:'解毒薬',cat:'薬',desc:'毒を解除（現版では毒敵なし）'},bread:{name:'小さなパン',cat:'食料',desc:'お腹25回復'},bigbread:{name:'大きなパン',cat:'食料',desc:'お腹60回復'},
+ haste:{name:'倍速の杖',cat:'杖',desc:'水晶に撃つと自分が倍速3巡'},fire:{name:'火球の杖',cat:'杖',desc:'敵に固定8ダメージ'},sleep:{name:'睡眠の書',cat:'書',desc:'敵全体を2行動分睡眠'},
+ jelly:{name:'ぷるぷるゼリー',cat:'贈り物',desc:'スライム娘の好物'},meat:{name:'骨付き肉',cat:'贈り物',desc:'犬娘の好物'},flower:{name:'月光の花',cat:'贈り物',desc:'フェアリーの好物'},carrot:{name:'にんじん菓子',cat:'贈り物',desc:'ウサギ娘の好物'}
+};
+const floorCfg={
+ 1:{nodes:[6,7],layers:3,weights:{encounter:35,item:30,empty:20,crystal:10,forge:5},enemy:{slime:65,dog:35,rabbit:0,fairy:0},multi:0},
+ 2:{nodes:[7,9],layers:3,weights:{encounter:38,item:27,empty:15,crystal:10,forge:10},enemy:{slime:45,dog:40,rabbit:15,fairy:0},multi:10},
+ 3:{nodes:[8,10],layers:4,weights:{encounter:40,item:25,empty:15,crystal:10,forge:10},enemy:{slime:30,dog:30,rabbit:20,fairy:20},multi:15},
+ 4:{nodes:[9,11],layers:4,weights:{encounter:42,item:23,empty:13,crystal:10,forge:12},enemy:{slime:15,dog:30,rabbit:25,fairy:30},multi:25},
+ 5:{nodes:[10,12],layers:5,weights:{encounter:45,item:20,empty:12,crystal:10,forge:13},enemy:{slime:10,dog:25,rabbit:25,fairy:40},multi:35}
+};
+const itemCatWeights={weapon:15,shield:15,potion:18,food:18,book:8,wand:12,gift:14};
+const pools={weapon:['wood_stick','wood_stick','iron_sword','great_axe'],shield:['wood_shield','wood_shield','iron_shield','shell_shield'],potion:['potion','potion','potion','antidote'],food:['bread','bread','bigbread'],book:['sleep'],wand:['haste','fire'],gift:['jelly','meat','flower','carrot']};
+const typeMeta={entrance:['🚪','入口'],exit:['⬆️','出口'],encounter:['⚔️','魔物娘'],item:['🎒','アイテム'],empty:['·','無'],crystal:['💎','水晶'],forge:['🔨','鍛冶台']};
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a; const choice=a=>a[Math.floor(Math.random()*a.length)];
+function weighted(obj){const entries=Object.entries(obj).filter(x=>x[1]>0);let r=Math.random()*entries.reduce((s,x)=>s+x[1],0);for(const [k,w] of entries){r-=w;if(r<=0)return k}return entries[0][0]}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+const state={mode:'explore',floor:1,time:0,map:null,current:null,player:null,items:{},gear:[],equip:{weapon:null,shield:null},blessings:{},log:[],battle:null,runOver:false,stats:{battles:0,kills:0,friends:0,reexplores:0,nodes:0}};
+function freshPlayer(){return {level:1,maxHp:30,hp:30,baseAtk:5,hunger:100,maxHunger:100,exp:0,hasteActions:0,hasteSkip:true,slimeHits:0}}
+function startingItems(){return {potion:1,antidote:0,bread:1,bigbread:0,haste:1,fire:2,sleep:1,jelly:1,meat:1,flower:1,carrot:1}}
+function readBlessings(){const chosen=$$('input[data-blessing]:checked').map(x=>x.dataset.blessing).slice(0,3);return {slime:{on:chosen.includes('slime'),fatigue:0},dog:{on:chosen.includes('dog'),fatigue:0},rabbit:{on:chosen.includes('rabbit'),fatigue:0},fairy:{on:chosen.includes('fairy'),fatigue:0}}}
+function atk(){const g=state.equip.weapon;return state.player.baseAtk+(g?gearDefs[g.key].base+g.plus:0)}
+function def(){const g=state.equip.shield;return g?gearDefs[g.key].base+g.plus:0}
+function expForLevel(lv){return lv===1?0:2*(lv-1)*(lv+4)}
+function nextExp(){return expForLevel(state.player.level+1)}
+function invCount(){return Object.values(state.items).reduce((a,b)=>a+b,0)+state.gear.length}
+function addLog(t,cls=''){state.log.push({t,cls});if(state.log.length>120)state.log.shift();renderLog()}
+function setMessage(t){$('#message').textContent=t}
+function renderLog(){$('#log').innerHTML=state.log.map(x=>`<div class="logline ${x.cls}">${esc(x.t)}</div>`).join('');$('#log').scrollTop=$('#log').scrollHeight}
+function dangerTier(){if(state.time>=42)return 3;if(state.time>=30)return 2;if(state.time>=18)return 1;return 0}
+function dangerInfo(){return [['安全',0],['警戒',1],['危険',2],['極危険',3]][dangerTier()]}
+function spendTime(n=1,hunger=true){if(state.runOver)return false;state.time+=n;if(hunger){state.player.hunger=Math.max(0,state.player.hunger-n);if(state.player.hunger===0){state.player.hp=Math.max(0,state.player.hp-n);addLog(`空腹でHPが${n}減った。`,'bad')}}if(state.player.hp<=0){gameOver('空腹で力尽きた。');return false}renderStatus();return true}
+function recoverBlessingsOnMove(){for(const b of Object.values(state.blessings))if(b.on)b.fatigue=Math.max(0,b.fatigue-5)}
+function checkLevel(){while(state.player.level<99&&state.player.exp>=nextExp()){state.player.level++;const hp=rnd(2,4),ap=rnd(1,2);state.player.maxHp+=hp;state.player.hp+=hp;state.player.baseAtk+=ap;addLog(`Lv${state.player.level}！ 最大HP+${hp}、基礎攻撃力+${ap}。`,'good')}}
+function rollPlus(){const r=Math.random()*100;return r<5?2:r<25?1:0}
+function itemCategoryLabel(cat){return {weapon:'武器',shield:'盾',potion:'薬',food:'食料',book:'書',wand:'杖',gift:'贈り物'}[cat]}
+function makeItemPayload(cat=null){cat=cat||weighted(itemCatWeights);const key=choice(pools[cat]);if(cat==='weapon'||cat==='shield')return {kind:'gear',key,plus:Math.min(gearDefs[key].maxPlus,rollPlus()),cat};return {kind:'item',key,amount:(key==='fire'||key==='haste'?3:1),cat}}
+function generateMap(){const cfg=floorCfg[state.floor],target=rnd(cfg.nodes[0],cfg.nodes[1]),midCount=target-2,L=cfg.layers;let counts=Array(L).fill(1),extra=midCount-L;while(extra>0){const i=rnd(0,L-1);if(counts[i]<3){counts[i]++;extra--}}
+ const layers=[[{id:'n0',type:'entrance',layer:0,index:0,cleared:true,consumed:false}]];let idn=1,seenEnc=false,seenItem=false;
+ for(let l=0;l<L;l++){const arr=[];for(let i=0;i<counts[l];i++){let type=weighted(cfg.weights);seenEnc ||= type==='encounter';seenItem ||= type==='item';arr.push({id:'n'+idn++,type,layer:l+1,index:i,cleared:false,consumed:false,payload:null})}layers.push(arr)}
+ if(!seenEnc)layers[1][0].type='encounter'; if(!seenItem){const layer=layers[Math.min(2,layers.length-1)];layer[layer.length-1].type='item'}
+ const exit={id:'n'+idn,type:'exit',layer:L+1,index:0,cleared:false,consumed:false};layers.push([exit]);
+ const nodes={};layers.flat().forEach(n=>{nodes[n.id]=n;if(n.type==='item'){n.itemCat=weighted(itemCatWeights);n.payload=makeItemPayload(n.itemCat)}});
+ const edges=[];for(let l=0;l<layers.length-1;l++){const a=layers[l],b=layers[l+1];const incoming=new Set();for(const n of a){const t=choice(b);edges.push([n.id,t.id]);incoming.add(t.id);if(b.length>1&&Math.random()<.45){const t2=choice(b.filter(x=>x.id!==t.id));edges.push([n.id,t2.id]);incoming.add(t2.id)}}for(const n of b)if(!incoming.has(n.id)){edges.push([choice(a).id,n.id])}}
+ return {layers,nodes,edges,entry:'n0',exit:exit.id};
+}
+function positions(){const pos={};const W=840,H=480,L=state.map.layers.length;state.map.layers.forEach((layer,li)=>{const x=70+(W-140)*(li/(L-1));layer.forEach((n,i)=>{const y=layer.length===1?H/2:90+(H-180)*(i/(layer.length-1));pos[n.id]={x,y}})});return pos}
+function nextNodes(){if(!state.map||!state.current)return[];return state.map.edges.filter(e=>e[0]===state.current).map(e=>e[1])}
+function nodeLabel(n){if(n.type==='item')return itemCategoryLabel(n.itemCat);return typeMeta[n.type][1]}
+function renderMap(){if(!state.map)return;const p=positions(),reach=new Set(nextNodes());let svg='<svg viewBox="0 0 840 480">';for(const [a,b] of state.map.edges){const pa=p[a],pb=p[b];svg+=`<line class="edge ${a===state.current?'available':''}" x1="${pa.x}" y1="${pa.y}" x2="${pb.x}" y2="${pb.y}"/>`}svg+='</svg>';
+ let nodes='';for(const n of Object.values(state.map.nodes)){const m=typeMeta[n.type],cls=[n.id===state.current?'current':'',reach.has(n.id)?'reachable':'',n.cleared?'cleared':'',n.consumed?'consumed':'',(!reach.has(n.id)&&n.id!==state.current)?'locked':''].join(' ');nodes+=`<button class="node ${cls}" style="left:${p[n.id].x}px;top:${p[n.id].y}px" data-node="${n.id}" ${reach.has(n.id)&&!state.runOver?'':'disabled'}><span class="ico">${m[0]}</span><span class="lab">${esc(nodeLabel(n))}</span><span class="tiny">${n.cleared?'済':''}</span></button>`}$('#mapCanvas').innerHTML=svg+nodes;$$('[data-node]').forEach(b=>b.onclick=()=>enterNode(b.dataset.node))}
+function renderStatus(){const p=state.player||freshPlayer();$('#hpbar').style.width=`${100*p.hp/p.maxHp}%`;$('#hptext').textContent=`${p.hp}/${p.maxHp}`;$('#hunbar').style.width=`${p.hunger}%`;$('#huntext').textContent=`${p.hunger}/${p.maxHunger}`;$('#lvtext').textContent=p.level;$('#atktext').textContent=atk();$('#deftext').textContent=def();$('#exptext').textContent=p.exp;$('#nextExpText').textContent=p.level>=99?'MAX':nextExp();$('#floorText').textContent=`${state.floor}F / 経過${state.time}`;const di=dangerInfo();$('#dangerText').textContent=di[0];$('#dangerbar').style.width=`${Math.min(100,state.time/42*100)}%`;const sts=[];if(p.hasteActions>0)sts.push(`倍速 残り${Math.ceil(p.hasteActions/2)}巡`);if(p.slimeHits>0)sts.push(`ジェル ${p.slimeHits}/4`);$('#playerstatus').textContent=sts.join(' / ')||'状態異常なし';renderFatigue();renderInventory()}
+function renderFatigue(){const names={slime:'スライムジェル',dog:'あなほり',rabbit:'バニーウィンク',fairy:'妖精のまもり'};$('#fatigueList').innerHTML=Object.entries(state.blessings||{}).filter(x=>x[1].on).map(([k,v])=>`${names[k]}：疲労 <b>${v.fatigue}</b>/100`).join('<br>')||'加護なし'}
+function renderInventory(){if(!state.player)return;$('#captext').textContent=`所持 ${invCount()}/25　武器：${state.equip.weapon?gearName(state.equip.weapon):'なし'}　盾：${state.equip.shield?gearName(state.equip.shield):'なし'}`;let out='';for(const [k,n] of Object.entries(state.items)){if(n<=0)continue;const d=itemDefs[k];const usable=state.mode==='explore'&&['potion','bread','bigbread','antidote'].includes(k);out+=`<div class="invrow"><b>${esc(d.name)} ×${n}</b><div class="small">${esc(d.desc)}</div>${usable?`<button class="mini" data-useout="${k}">使う</button>`:''}</div>`}
+ state.gear.forEach((g,i)=>{const eq=(state.equip[g.cat]===g);out+=`<div class="invrow gear ${eq?'equipped':''}"><b>${esc(gearName(g))}</b><div class="small">${g.cat==='weapon'?`攻撃+${gearDefs[g.key].base+g.plus}`:`防御+${gearDefs[g.key].base+g.plus}`} / +上限${gearDefs[g.key].maxPlus}</div><button class="mini" data-equip="${i}">${eq?'装備中':'装備'}</button></div>`});$('#inventory').innerHTML=out||'<div class="small">所持品なし</div>';$$('[data-useout]').forEach(b=>b.onclick=()=>useOutside(b.dataset.useout));$$('[data-equip]').forEach(b=>b.onclick=()=>equipGear(Number(b.dataset.equip)))}
+function gearName(g){return `${gearDefs[g.key].name}${g.plus?` +${g.plus}`:''}`}
+function equipGear(i){if(state.mode!=='explore'||state.runOver)return;const g=state.gear[i];state.equip[g.cat]=g;addLog(`${gearName(g)}を装備した。`,'info');renderAll()}
+function useOutside(k){if(state.mode!=='explore'||state.runOver||state.items[k]<=0)return;state.items[k]--;if(k==='potion'){const old=state.player.hp;state.player.hp=Math.min(state.player.maxHp,state.player.hp+15);addLog(`回復薬を使い、HPを${state.player.hp-old}回復。`,'good')}if(k==='bread'||k==='bigbread'){const v=k==='bread'?25:60,old=state.player.hunger;state.player.hunger=Math.min(100,state.player.hunger+v);addLog(`${itemDefs[k].name}を食べ、お腹を${state.player.hunger-old}回復。`,'good')}if(k==='antidote')addLog('解毒薬を使った。今は毒状態ではない。','info');spendTime(1,true);renderAll()}
+function renderContext(){if(!state.map)return;const n=state.map.nodes[state.current];let h=`<h3>${typeMeta[n.type][0]} ${esc(nodeLabel(n))}</h3>`,body='';
+ if(n.type==='entrance')body='このフロアの入口。緑枠のノードへ進めます。';
+ if(n.type==='empty')body='何もない。少し静かだ。';
+ if(n.type==='encounter')body=n.cleared?'この場所の魔物娘との遭遇は解決済み。':'魔物娘の気配がする。';
+ if(n.type==='item'){body=n.consumed?'ここにあったアイテムは取得済み。':`${itemCategoryLabel(n.itemCat)}がある。種類は事前に分かるが、中身は拾うまで分からない。`;if(!n.consumed)body+=`<div class="row" style="margin-top:7px"><button class="mini" id="pickupHereBtn" ${invCount()<25?'':'disabled'}>拾う</button></div>`}
+ if(n.type==='crystal'){body='杖の魔法弾を反射して自分に当てられる。';body+=`<div class="row" style="margin-top:7px"><button class="mini" data-crystal="haste" ${state.items.haste>0?'':'disabled'}>倍速の杖を反射（残${state.items.haste}）</button><button class="mini" data-crystal="fire" ${state.items.fire>0?'':'disabled'}>火球の杖を反射（残${state.items.fire}）</button></div>`}
+ if(n.type==='forge'){body=n.consumed?'鍛冶台は使用済み。':'装備中の武器か盾を+1できる。1回だけ使用可能。';if(!n.consumed)body+=`<div class="row" style="margin-top:7px"><button class="mini" data-forge="weapon" ${canForge('weapon')?'':'disabled'}>武器を+1</button><button class="mini" data-forge="shield" ${canForge('shield')?'':'disabled'}>盾を+1</button></div>`}
+ if(n.type==='exit'){body=state.floor<5?'次のフロアへ進むか、このフロアを再探索できます。':'5Fの出口。ここを抜ければ試作版クリア。';body+=`<div class="runbuttons" style="margin-top:8px">${state.floor<5?'<button class="primary" id="nextFloorBtn">次のフロアへ</button>':'<button class="primary" id="clearBtn">試作版をクリアする</button>'}<button class="ghost" id="reexploreBtn">このフロアを再探索</button></div>`}
+ $('#context').innerHTML=h+`<div class="small">${body}</div>`;$('#pickupHereBtn')?.addEventListener('click',()=>{const here=state.map.nodes[state.current];if(here.type==='item'&&!here.consumed){pickupNodeItem(here);renderAll()}});$$('[data-crystal]').forEach(b=>b.onclick=()=>useCrystal(b.dataset.crystal));$$('[data-forge]').forEach(b=>b.onclick=()=>useForge(b.dataset.forge));$('#nextFloorBtn')?.addEventListener('click',nextFloor);$('#clearBtn')?.addEventListener('click',clearRun);$('#reexploreBtn')?.addEventListener('click',reExplore)}
+function canForge(cat){const g=state.equip[cat];return !!g&&g.plus<gearDefs[g.key].maxPlus}
+function useForge(cat){const n=state.map.nodes[state.current],g=state.equip[cat];if(n.consumed||!canForge(cat))return;g.plus++;n.consumed=true;addLog(`鍛冶台で${gearName(g)}に強化した。`,'good');spendTime(1,true);renderAll()}
+function useCrystal(k){if(state.items[k]<=0)return;state.items[k]--;if(k==='haste'){state.player.hasteActions=6;state.player.hasteSkip=true;addLog('倍速の杖を水晶に撃ち、反射を自分に当てた。3巡ぶん倍速になった。','good')}else{state.player.hp=Math.max(0,state.player.hp-8);addLog('火球の杖が反射し、自分に8ダメージ！','bad');if(state.player.hp<=0){gameOver('水晶で反射した火球に倒れた。');return}}spendTime(1,true);renderAll()}
+function enterNode(id){if(state.mode!=='explore'||state.runOver||!nextNodes().includes(id))return;recoverBlessingsOnMove();if(!spendTime(1,true))return;state.current=id;state.stats.nodes++;const n=state.map.nodes[id];addLog(`${nodeLabel(n)}ノードへ移動。`,'info');if(n.type==='item'&&!n.consumed)pickupNodeItem(n);if(n.type==='encounter'&&!n.cleared){startEncounter(n);return}if(n.type==='empty')n.cleared=true;if(n.type==='exit')n.cleared=true;setMessage(`${nodeLabel(n)}に到着した。`);renderAll()}
+function pickupNodeItem(n){if(invCount()>=25){setMessage('所持上限25。アイテムを拾えなかった。');addLog('所持上限のためアイテムを残した。','bad');return}givePayload(n.payload,`${itemCategoryLabel(n.itemCat)}ノード`);n.consumed=true;n.cleared=true}
+function givePayload(p,source='入手'){if(p.kind==='gear'){const g={key:p.key,cat:gearDefs[p.key].cat,plus:p.plus};state.gear.push(g);addLog(`${source}：${gearName(g)}を入手。`,'good')}else{state.items[p.key]=(state.items[p.key]||0)+p.amount;addLog(`${source}：${itemDefs[p.key].name}${p.amount>1?`（${p.amount}回分）`:''}を入手。`,'good')}renderStatus()}
+function reExplore(){state.stats.reexplores++;for(const n of Object.values(state.map.nodes)){if(n.type==='encounter'&&n.cleared&&Math.random()<.40){n.cleared=false;addLog('再探索で、新たな魔物娘の気配が生まれた。','bad')}}state.current=state.map.entry;addLog(`${state.floor}Fを再探索。アイテムや鍛冶台は復活しない。危険度も維持される。`,'info');setMessage('入口へ戻った。再探索を開始する。');renderAll()}
+function nextFloor(){if(state.floor>=5)return;state.floor++;state.time=0;state.map=generateMap();state.current=state.map.entry;addLog(`${state.floor}Fへ進んだ。`,'info');dogDig();setMessage(`${state.floor}Fに到着した。`);renderAll()}
+function dogDig(){const b=state.blessings.dog;if(!b?.on||b.fatigue>80)return;if(Math.random()<.30){const cat=weighted({potion:30,food:30,book:15,wand:25});const p=makeItemPayload(cat);if(invCount()<25){givePayload(p,'あなほり');b.fatigue+=20;addLog('犬娘の加護「あなほり」が発動。疲労+20。','good')}else addLog('あなほりが何かを見つけたが、所持品がいっぱいだった。','bad')}else addLog('犬娘は地面をくんくん嗅いだが、今回は何も見つからなかった。','info')}
+function clearRun(){state.runOver=true;const s=state.stats;showOverlay('試作版クリア',`5F出口に到達しました。戦闘 ${s.battles}回 / 撃破 ${s.kills}体 / 友好解決 ${s.friends}体 / 再探索 ${s.reexplores}回 / 移動 ${s.nodes}ノード。<br>残りHP ${state.player.hp}/${state.player.maxHp}、お腹 ${state.player.hunger}/100。`);setMessage('5Fを踏破した！')}
+function showOverlay(title,body){const o=$('#overlay');o.innerHTML=`<h2>${esc(title)}</h2><div class="small">${body}</div><div class="runbuttons" style="margin-top:8px"><button class="primary" id="restartOverlay">新しく始める</button></div>`;o.classList.add('show');$('#restartOverlay').onclick=newRun}
+function gameOver(why){state.runOver=true;state.mode='explore';showScreens();showOverlay('ゲームオーバー',`${esc(why)}<br>${state.floor}F / 戦闘${state.stats.battles}回 / 再探索${state.stats.reexplores}回`);setMessage(why);renderAll()}
+function newRun(){state.mode='explore';state.floor=1;state.time=0;state.player=freshPlayer();state.items=startingItems();state.gear=[];state.equip={weapon:null,shield:null};state.blessings=readBlessings();state.log=[];state.battle=null;state.runOver=false;state.stats={battles:0,kills:0,friends:0,reexplores:0,nodes:0};state.map=generateMap();state.current=state.map.entry;$('#overlay').classList.remove('show');addLog('1Fに到着した。まず出口を目指そう。','info');dogDig();setMessage('1Fに到着した。緑枠のノードへ進めます。');renderAll()}
 
-  $$('.action').forEach(b=>b.addEventListener('click',()=>{
-    if(b.disabled)return; const a=b.dataset.action; resetDrawers();
-    if(a==='attack')playerAttack();
-    else if(a==='distance')doDistance();
-    else if(a==='talk')talk();
-    else if(a==='befriend')befriend();
-    else if(a==='flee')flee();
-    else if(a==='item'){$('#itemDrawer').classList.add('show');renderDrawers();}
-    else if(a==='gift'){$('#giftDrawer').classList.add('show');renderDrawers();}
-    else if(a==='blessing'){$('#blessingDrawer').classList.add('show');renderDrawers();}
-  }));
-  $('#startBtn').onclick=startBattle;
-  $$('input[data-blessing]').forEach(cb=>cb.addEventListener('change',()=>{
-    const checked=$$('input[data-blessing]:checked'); if(checked.length>3){cb.checked=false;setMessage('加護は最大3個までセットできます。');}
-    if(!state.active||state.ended)render(); else setMessage('戦闘中の加護セット変更は試作版ではできません。次の戦闘開始時に反映されます。');
-  }));
-  state.player=freshPlayer();state.blessings=readBlessings();state.items=structuredClone(baseItems);state.gifts=structuredClone(giftDefs);render();
+// battle
+function pickEnemyKey(){return weighted(floorCfg[state.floor].enemy)}
+function enemyGroupSize(){const tier=dangerTier(),base=floorCfg[state.floor].multi;if(tier===3)return Math.random()<.25?3:2;const chance=Math.min(80,base+(tier===1?15:tier===2?25:0));return Math.random()*100<chance?2:1}
+function makeEnemy(key,isNew=false){const d=enemyDefs[key];return {id:state.battle.nextId++,key,name:d.name,icon:d.icon,maxHp:d.hp,hp:d.hp,atk:d.atk,def:d.def,exp:d.exp,friend:0,charm:0,sleep:0,actionCount:0,alive:true,isNew}}
+function startEncounter(node){state.mode='battle';state.stats.battles++;state.battle={nodeId:node.id,enemies:[],selected:0,turn:0,distance:false,nextId:1,ended:false};const n=enemyGroupSize();for(let i=0;i<n;i++)state.battle.enemies.push(makeEnemy(pickEnemyKey()));addLog(`${state.battle.enemies.map(e=>e.name).join('、')}と遭遇。`,'bad');setMessage('遭遇開始。対象を選んで行動してください。');showScreens();renderAll();const rabbit=state.battle.enemies.find(e=>enemyDefs[e.key].firstStrike);if(rabbit){addLog('ウサギ娘の「先制」！','bad');enemyPhysical(rabbit,true);renderAll()}}
+function living(){return state.battle?state.battle.enemies.filter(e=>e.alive):[]}
+function selectedEnemy(){if(!state.battle)return null;let e=state.battle.enemies[state.battle.selected];if(!e||!e.alive){const i=state.battle.enemies.findIndex(x=>x.alive);state.battle.selected=Math.max(0,i);e=state.battle.enemies[state.battle.selected]}return e}
+function resetDrawers(){$$('.drawer').forEach(x=>x.classList.remove('show'))}
+function renderBattle(){if(!state.battle)return;$('#battlefield').innerHTML=state.battle.enemies.map((e,i)=>{const tags=[];if(e.charm>0)tags.push(`<span class="tag charm">魅了 ${e.charm}</span>`);if(e.sleep>0)tags.push(`<span class="tag sleep">睡眠 ${e.sleep}</span>`);if(e.isNew)tags.push('<span class="tag new">乱入</span>');return `<div class="enemy ${i===state.battle.selected&&e.alive?'selected':''} ${e.alive?'':'dead'}"><div class="portrait">${e.icon}</div><h3>${esc(e.name)}${e.alive?'':'（退場）'}</h3><div class="statline"><b>HP</b><div class="bar"><i class="hp" style="width:${Math.max(0,100*e.hp/e.maxHp)}%"></i></div><span>${e.hp}/${e.maxHp}</span></div><div class="statline"><b>友好</b><div class="bar"><i class="fr" style="width:${e.friend}%"></i></div><span>${e.friend}/100</span></div><div class="small" style="text-align:center">攻撃 ${e.atk} / 防御 ${e.def}</div><div class="tags">${tags.join('')}</div><button class="targetbtn" data-target="${i}" ${e.alive?'':'disabled'}>${e.alive?'この娘を選択':'退場済み'}</button></div>`}).join('');$$('[data-target]').forEach(b=>b.onclick=()=>{state.battle.selected=Number(b.dataset.target);resetDrawers();renderAll()});renderBattleButtons();renderBattleDrawers()}
+function renderBattleButtons(){const can=state.mode==='battle'&&!state.runOver&&living().length>0;$$('.action').forEach(b=>b.disabled=!can);const e=selectedEnemy();$('[data-action="befriend"]').disabled=!can||!e||e.friend<100;$('[data-action="flee"]').disabled=!can||!canFlee();const r=state.blessings.rabbit;$('[data-action="blessing"]').disabled=!can||!r?.on||r.fatigue>60}
+function renderBattleDrawers(){const usable=['potion','bread','bigbread','fire','sleep'];$('#itemGrid').innerHTML=usable.map(k=>{const d=itemDefs[k],n=state.items[k]||0;return `<button class="itembtn" data-bitem="${k}" ${n>0?'':'disabled'}><b>${d.name} ×${n}</b><span>${d.desc}</span></button>`}).join('')+`<button class="itembtn" disabled><b>倍速の杖 ×${state.items.haste||0}</b><span>現版では水晶反射専用</span></button>`;$$('[data-bitem]').forEach(b=>b.onclick=()=>useBattleItem(b.dataset.bitem));const gifts=['jelly','meat','flower','carrot'];$('#giftGrid').innerHTML=gifts.map(k=>`<button class="itembtn" data-gift="${k}" ${(state.items[k]||0)>0?'':'disabled'}><b>${itemDefs[k].name} ×${state.items[k]||0}</b><span>好物+45 / それ以外+10</span></button>`).join('');$$('[data-gift]').forEach(b=>b.onclick=()=>giveGift(b.dataset.gift));const r=state.blessings.rabbit;$('#blessingGrid').innerHTML=`<button class="itembtn" data-bunny ${r?.on&&r.fatigue<=60?'':'disabled'}><b>バニーウィンク</b><span>3巡魅了 / 疲労+40</span></button>`;$('#blessingGrid [data-bunny]')?.addEventListener('click',useBunny)}
+function damageEnemy(e,dmg,src='攻撃'){if(!e?.alive)return;e.hp=Math.max(0,e.hp-dmg);addLog(`${src}！ ${e.name}に${dmg}ダメージ。`,'good');if(e.charm>0&&src==='通常攻撃'){e.charm=0;addLog(`${e.name}の魅了が解けた。`,'info')}if(e.sleep>0){e.sleep=0;addLog(`${e.name}は目を覚ました。`,'info')}if(e.hp<=0){e.alive=false;state.player.exp+=e.exp;state.stats.kills++;addLog(`${e.name}を撃破。EXP ${e.exp}。`,'good');checkLevel();maybeLoot(e,'撃破');checkEncounterEnd()}}
+function playerAttack(){const e=selectedEnemy();if(!e)return;damageEnemy(e,Math.max(1,atk()-e.def),'通常攻撃');if(state.mode==='battle')battleTurn()}
+function enemyPhysical(e,opening=false){if(!e.alive||state.runOver)return;const dmg=Math.max(1,e.atk-def());state.player.hp=Math.max(0,state.player.hp-dmg);addLog(`${e.name}の攻撃。${dmg}ダメージ。`,'bad');const b=state.blessings.slime;if(b?.on){state.player.slimeHits++;if(state.player.slimeHits>=4&&b.fatigue<=85){const heal=Math.max(1,Math.ceil(dmg*.25));state.player.hp=Math.min(state.player.maxHp,state.player.hp+heal);state.player.slimeHits=0;b.fatigue+=15;addLog(`スライムジェル発動。HP${heal}回復、疲労+15。`,'good')}}if(state.player.hp<=0)gameOver(opening?'先制攻撃で倒れた。':'戦闘で力尽きた。')}
+function enemyMagic(e){const b=state.blessings.fairy;if(b?.on&&b.fatigue<=20){b.fatigue+=80;addLog(`妖精のまもり！ ${e.name}の魔法を無効化。疲労+80。`,'good');return}state.player.hp=Math.max(0,state.player.hp-5);addLog(`${e.name}の魔法弾。防御無視5ダメージ。`,'bad');if(state.player.hp<=0)gameOver('魔法弾に倒れた。')}
+function battleTurn(){if(state.mode!=='battle'||state.runOver)return;state.battle.turn++;if(!spendTime(1,true))return;let skip=false;if(state.player.hasteActions>0){state.player.hasteActions--;if(state.player.hasteSkip){skip=true;state.player.hasteSkip=false;addLog('倍速でもう一度先に動ける。','good')}else state.player.hasteSkip=true;if(state.player.hasteActions===0)addLog('倍速が切れた。','info')}if(!skip)enemyPhase();state.battle.distance=false;state.battle.enemies.forEach(e=>e.isNew=false);renderAll()}
+function enemyPhase(){const snap=living();for(const e of snap){if(state.runOver||state.mode!=='battle'||!e.alive)continue;if(e.isNew){addLog(`${e.name}は乱入直後なのでこの巡は行動しない。`,'info');continue}if(e.sleep>0){e.sleep--;addLog(`${e.name}は眠っている。`,'info');continue}if(e.charm>0){e.charm--;const others=living().filter(x=>x.id!==e.id);if(others.length){const t=choice(others),d=Math.max(1,e.atk-t.def);t.hp=Math.max(0,t.hp-d);addLog(`魅了された${e.name}が${t.name}を攻撃。${d}ダメージ。`,'good');if(t.hp<=0){t.alive=false;addLog(`${t.name}は倒れた。魅了による撃破なのでEXPなし。`,'info');maybeLoot(t,'魅了による撃破')}}else addLog(`魅了された${e.name}は何もしない。`,'info');continue}e.actionCount++;const magic=enemyDefs[e.key].magic&&e.actionCount%2===0;if(state.battle.distance&&!magic){addLog(`${e.name}は距離を詰めるため行動を使った。`,'info');continue}magic?enemyMagic(e):enemyPhysical(e)}checkEncounterEnd()}
+function doDistance(){state.battle.distance=true;const tier=dangerTier(),rate=25+[0,5,10,20][tier];addLog(`距離を取った。乱入判定 ${rate}%。`,'info');if(living().length<3&&Math.random()*100<rate){const e=makeEnemy(pickEnemyKey(),true);state.battle.enemies.push(e);addLog(`${e.name}が乱入した！`,'bad')}else if(living().length<3)addLog('今回は乱入者なし。','info');battleTurn()}
+function talk(){const e=selectedEnemy();if(!e)return;if(e.charm>0){e.alive=false;addLog(`魅了中の${e.name}に話しかけ、帰ってもらった。`,'good');maybeLoot(e,'魅了して帰す');checkEncounterEnd();renderAll();return}const lines={slime:'「……ぷる？」',dog:'「まだ信用したわけじゃないからね！」',rabbit:'「に、逃げないの？」',fairy:'「距離を取っても魔法は届くわよ。」'};setMessage(`${e.name} ${lines[e.key]}`);addLog(`${e.name}に話しかけた。（ターン消費なし）`,'info')}
+function giveGift(k){const e=selectedEnemy();if(!e||(state.items[k]||0)<=0)return;state.items[k]--;const gain=enemyDefs[e.key].gift===k?45:10;e.friend=Math.min(100,e.friend+gain);addLog(`${e.name}に${itemDefs[k].name}。友好+${gain}。`,'good');if(e.friend>=100)addLog('友好解決を選べる。','good');resetDrawers();renderAll()}
+function befriend(){const e=selectedEnemy();if(!e||e.friend<100)return;const gain=Math.ceil(e.exp*1.5);state.player.exp+=gain;state.stats.friends++;e.alive=false;addLog(`${e.name}と友好解決。EXP ${gain}。`,'good');addLog('加護獲得は未実装。','info');checkLevel();maybeLoot(e,'友好解決');checkEncounterEnd();renderAll()}
+function maybeLoot(e,why){if(Math.random()>=.35){addLog(`${why}のアイテム抽選は外れ。`,'info');return}if(invCount()>=25){addLog(`${e.name}が何かをくれそうだったが、所持品がいっぱい。`,'bad');return}const cat=weighted(e.key==='slime'?{potion:35,food:30,wand:10,weapon:10,gift:15}:e.key==='dog'?{potion:15,food:35,wand:5,weapon:30,gift:15}:e.key==='rabbit'?{potion:15,food:25,wand:10,weapon:15,gift:35}:{potion:20,food:10,wand:45,weapon:10,gift:15});givePayload(makeItemPayload(cat),`${e.name}から`)}
+function canFlee(){return state.player.hasteActions>0||living().every(e=>e.charm>0||e.sleep>0)}
+function flee(){if(!canFlee())return;addLog('条件を満たしているため確実に逃走。敵HPは次回全回復する。','info');state.mode='explore';state.battle=null;setMessage('遭遇から逃げた。ノードは残っている。');showScreens();renderAll()}
+function useBattleItem(k){if((state.items[k]||0)<=0)return;const e=selectedEnemy();if(k==='potion'){state.items[k]--;const old=state.player.hp;state.player.hp=Math.min(state.player.maxHp,state.player.hp+15);addLog(`回復薬。HP${state.player.hp-old}回復。`,'good')}if(k==='bread'||k==='bigbread'){state.items[k]--;const v=k==='bread'?25:60,old=state.player.hunger;state.player.hunger=Math.min(100,state.player.hunger+v);addLog(`${itemDefs[k].name}。お腹${state.player.hunger-old}回復。`,'good')}if(k==='fire'){state.items[k]--;damageEnemy(e,8,'火球の杖')}if(k==='sleep'){state.items[k]--;living().forEach(t=>t.sleep=2);addLog('睡眠の書。敵全体が眠った。','good')}resetDrawers();if(state.mode==='battle')battleTurn()}
+function useBunny(){const e=selectedEnemy(),b=state.blessings.rabbit;if(!e||!b?.on||b.fatigue>60)return;e.charm=3;b.fatigue+=40;addLog(`バニーウィンク！ ${e.name}を3巡魅了、疲労+40。`,'good');resetDrawers();battleTurn()}
+function checkEncounterEnd(){if(state.mode!=='battle'||living().length>0)return;const node=state.map.nodes[state.battle.nodeId];node.cleared=true;state.mode='explore';state.battle=null;setMessage('遭遇を切り抜けた。探索へ戻る。');showScreens();renderAll()}
+function showScreens(){$('#exploreScreen').classList.toggle('show',state.mode==='explore');$('#battleScreen').classList.toggle('show',state.mode==='battle');$('#modeTitle').textContent=state.mode==='explore'?`探索：${state.floor}F`:`戦闘：${state.floor}F`}
+function renderAll(){showScreens();renderStatus();if(state.mode==='explore'){renderMap();renderContext()}else renderBattle();renderLog()}
+$$('.action').forEach(b=>b.addEventListener('click',()=>{if(b.disabled)return;const a=b.dataset.action;resetDrawers();if(a==='attack')playerAttack();else if(a==='distance')doDistance();else if(a==='talk')talk();else if(a==='befriend')befriend();else if(a==='flee')flee();else if(a==='item'){$('#itemDrawer').classList.add('show');renderBattleDrawers()}else if(a==='gift'){$('#giftDrawer').classList.add('show');renderBattleDrawers()}else if(a==='blessing'){$('#blessingDrawer').classList.add('show');renderBattleDrawers()}}));
+$$('input[data-blessing]').forEach(cb=>cb.addEventListener('change',()=>{if($$('input[data-blessing]:checked').length>3){cb.checked=false;setMessage('加護は最大3個までです。')}else setMessage('加護セット変更は次の「最初から」で反映されます。')}));
+$('#newRunBtn').onclick=()=>{if(confirm('現在の試作プレイを破棄して最初から始めますか？'))newRun()};
+newRun();
 })();
 </script>
-</body>
-</html>
+</body></html>
