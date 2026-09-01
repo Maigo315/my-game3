@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>魔物娘ローグライク Ver.0.02 探索試作</title>
+<title>魔物娘ローグライク Ver.0.03 探索調整試作</title>
 <style>
 :root{
   --bg:#09131e;--panel:#142437;--panel2:#0f1c2b;--line:#35536c;--text:#edf5fb;--muted:#9fb2c2;
@@ -26,7 +26,7 @@ header{display:flex;justify-content:space-between;gap:14px;align-items:end;margi
 </head>
 <body>
 <div class="wrap">
-<header><div><h1>魔物娘ローグライク</h1><div class="sub">Ver.0.02 探索＋戦闘試作 · 1F〜5F · 加護獲得条件は未実装</div></div><div class="badge">DEV EXPLORE</div></header>
+<header><div><h1>魔物娘ローグライク</h1><div class="sub">Ver.0.03 探索調整試作 · 1F〜5F · 加護獲得条件は未実装</div></div><div class="badge">DEV EXPLORE</div></header>
 <div class="layout">
 <aside class="card sidebar">
   <section class="section"><h2>プレイヤー</h2>
@@ -39,12 +39,12 @@ header{display:flex;justify-content:space-between;gap:14px;align-items:end;margi
   <section class="section"><h2>開発用 加護セット <span class="small">最大3・新規開始時に反映</span></h2>
     <div class="dev-grid">
       <label class="check"><input type="checkbox" data-blessing="slime" checked><span><b>スライムジェル</b><br>4回被弾で25%回復</span></label>
-      <label class="check"><input type="checkbox" data-blessing="dog"><span><b>あなほり</b><br>新フロア30%でアイテム</span></label>
+      <label class="check"><input type="checkbox" data-blessing="dog"><span><b>あなほり</b><br>新フロア20%でアイテム</span></label>
       <label class="check"><input type="checkbox" data-blessing="rabbit" checked><span><b>バニーウィンク</b><br>[A] 3巡魅了</span></label>
       <label class="check"><input type="checkbox" data-blessing="fairy" checked><span><b>妖精のまもり</b><br>魔法を無効化</span></label>
     </div><div id="fatigueList" class="small" style="margin-top:7px"></div>
   </section>
-  <section class="section"><h2>試作メモ</h2><div class="small">乱入率は基本25%。危険度で上昇します。<br>加護獲得条件はまだありません。<br>UI・演出より、1フロアの戦闘回数と資源消耗を確認する版です。</div></section>
+  <section class="section"><h2>試作メモ</h2><div class="small">乱入率は基本20%。危険度で上昇します。<br>足踏み：1ターン＋お腹1でHP1自然回復。<br>犬娘2体の同時出現はしません。<br>加護獲得条件はまだありません。</div></section>
   <button id="newRunBtn" class="dangerbtn">最初からやり直す</button>
 </aside>
 <main class="card main">
@@ -53,6 +53,9 @@ header{display:flex;justify-content:space-between;gap:14px;align-items:end;margi
   <section id="exploreScreen" class="screen show">
     <div class="legend">● 現在地　◆ 緑枠＝移動可能　魔物娘・アイテム・水晶・鍛冶台などを選択</div>
     <div class="mapWrap"><div id="mapCanvas" class="mapCanvas"></div></div>
+    <div class="controls" style="margin:9px 0 0">
+      <button class="action" id="waitBtn">🦶 足踏み <span class="small">HP1回復 / お腹1 / 経過1</span></button>
+    </div>
     <div id="context" class="context"></div>
   </section>
 
@@ -86,16 +89,16 @@ const gearDefs={
  wood_shield:{name:'木の盾',cat:'shield',base:2,maxPlus:15},iron_shield:{name:'鉄の盾',cat:'shield',base:4,maxPlus:8},shell_shield:{name:'甲羅の盾',cat:'shield',base:6,maxPlus:4}
 };
 const itemDefs={
- potion:{name:'回復薬',cat:'薬',desc:'HP15回復'},antidote:{name:'解毒薬',cat:'薬',desc:'毒を解除（現版では毒敵なし）'},bread:{name:'小さなパン',cat:'食料',desc:'お腹25回復'},bigbread:{name:'大きなパン',cat:'食料',desc:'お腹60回復'},
+ potion:{name:'回復薬',cat:'薬',desc:'HP30回復'},antidote:{name:'解毒薬',cat:'薬',desc:'毒を解除（現版では毒敵なし）'},bread:{name:'小さなパン',cat:'食料',desc:'お腹25回復'},bigbread:{name:'大きなパン',cat:'食料',desc:'お腹60回復'},
  haste:{name:'倍速の杖',cat:'杖',desc:'水晶に撃つと自分が倍速3巡'},fire:{name:'火球の杖',cat:'杖',desc:'敵に固定8ダメージ'},sleep:{name:'睡眠の書',cat:'書',desc:'敵全体を2行動分睡眠'},
  jelly:{name:'ぷるぷるゼリー',cat:'贈り物',desc:'スライム娘の好物'},meat:{name:'骨付き肉',cat:'贈り物',desc:'犬娘の好物'},flower:{name:'月光の花',cat:'贈り物',desc:'フェアリーの好物'},carrot:{name:'にんじん菓子',cat:'贈り物',desc:'ウサギ娘の好物'}
 };
 const floorCfg={
- 1:{nodes:[6,7],layers:3,weights:{encounter:35,item:30,empty:20,crystal:10,forge:5},enemy:{slime:65,dog:35,rabbit:0,fairy:0},multi:0},
- 2:{nodes:[7,9],layers:3,weights:{encounter:38,item:27,empty:15,crystal:10,forge:10},enemy:{slime:45,dog:40,rabbit:15,fairy:0},multi:10},
- 3:{nodes:[8,10],layers:4,weights:{encounter:40,item:25,empty:15,crystal:10,forge:10},enemy:{slime:30,dog:30,rabbit:20,fairy:20},multi:15},
- 4:{nodes:[9,11],layers:4,weights:{encounter:42,item:23,empty:13,crystal:10,forge:12},enemy:{slime:15,dog:30,rabbit:25,fairy:30},multi:25},
- 5:{nodes:[10,12],layers:5,weights:{encounter:45,item:20,empty:12,crystal:10,forge:13},enemy:{slime:10,dog:25,rabbit:25,fairy:40},multi:35}
+ 1:{nodes:[10,14],layers:5,weights:{encounter:25,item:28,empty:27,crystal:12,forge:8},enemy:{slime:70,dog:30,rabbit:0,fairy:0},multi:0},
+ 2:{nodes:[12,16],layers:6,weights:{encounter:27,item:27,empty:24,crystal:12,forge:10},enemy:{slime:50,dog:35,rabbit:15,fairy:0},multi:8},
+ 3:{nodes:[14,18],layers:6,weights:{encounter:28,item:26,empty:22,crystal:12,forge:12},enemy:{slime:35,dog:25,rabbit:20,fairy:20},multi:12},
+ 4:{nodes:[16,20],layers:7,weights:{encounter:30,item:25,empty:20,crystal:12,forge:13},enemy:{slime:20,dog:25,rabbit:25,fairy:30},multi:18},
+ 5:{nodes:[18,22],layers:7,weights:{encounter:32,item:24,empty:18,crystal:12,forge:14},enemy:{slime:15,dog:20,rabbit:25,fairy:40},multi:25}
 };
 const itemCatWeights={weapon:15,shield:15,potion:18,food:18,book:8,wand:12,gift:14};
 const pools={weapon:['wood_stick','wood_stick','iron_sword','great_axe'],shield:['wood_shield','wood_shield','iron_shield','shell_shield'],potion:['potion','potion','potion','antidote'],food:['bread','bread','bigbread'],book:['sleep'],wand:['haste','fire'],gift:['jelly','meat','flower','carrot']};
@@ -116,7 +119,7 @@ function invCount(){return Object.values(state.items).reduce((a,b)=>a+b,0)+state
 function addLog(t,cls=''){state.log.push({t,cls});if(state.log.length>120)state.log.shift();renderLog()}
 function setMessage(t){$('#message').textContent=t}
 function renderLog(){$('#log').innerHTML=state.log.map(x=>`<div class="logline ${x.cls}">${esc(x.t)}</div>`).join('');$('#log').scrollTop=$('#log').scrollHeight}
-function dangerTier(){if(state.time>=42)return 3;if(state.time>=30)return 2;if(state.time>=18)return 1;return 0}
+function dangerTier(){if(state.time>=50)return 3;if(state.time>=34)return 2;if(state.time>=20)return 1;return 0}
 function dangerInfo(){return [['安全',0],['警戒',1],['危険',2],['極危険',3]][dangerTier()]}
 function spendTime(n=1,hunger=true){if(state.runOver)return false;state.time+=n;if(hunger){state.player.hunger=Math.max(0,state.player.hunger-n);if(state.player.hunger===0){state.player.hp=Math.max(0,state.player.hp-n);addLog(`空腹でHPが${n}減った。`,'bad')}}if(state.player.hp<=0){gameOver('空腹で力尽きた。');return false}renderStatus();return true}
 function recoverBlessingsOnMove(){for(const b of Object.values(state.blessings))if(b.on)b.fatigue=Math.max(0,b.fatigue-5)}
@@ -138,13 +141,13 @@ function nextNodes(){if(!state.map||!state.current)return[];return state.map.edg
 function nodeLabel(n){if(n.type==='item')return itemCategoryLabel(n.itemCat);return typeMeta[n.type][1]}
 function renderMap(){if(!state.map)return;const p=positions(),reach=new Set(nextNodes());let svg='<svg viewBox="0 0 840 480">';for(const [a,b] of state.map.edges){const pa=p[a],pb=p[b];svg+=`<line class="edge ${a===state.current?'available':''}" x1="${pa.x}" y1="${pa.y}" x2="${pb.x}" y2="${pb.y}"/>`}svg+='</svg>';
  let nodes='';for(const n of Object.values(state.map.nodes)){const m=typeMeta[n.type],cls=[n.id===state.current?'current':'',reach.has(n.id)?'reachable':'',n.cleared?'cleared':'',n.consumed?'consumed':'',(!reach.has(n.id)&&n.id!==state.current)?'locked':''].join(' ');nodes+=`<button class="node ${cls}" style="left:${p[n.id].x}px;top:${p[n.id].y}px" data-node="${n.id}" ${reach.has(n.id)&&!state.runOver?'':'disabled'}><span class="ico">${m[0]}</span><span class="lab">${esc(nodeLabel(n))}</span><span class="tiny">${n.cleared?'済':''}</span></button>`}$('#mapCanvas').innerHTML=svg+nodes;$$('[data-node]').forEach(b=>b.onclick=()=>enterNode(b.dataset.node))}
-function renderStatus(){const p=state.player||freshPlayer();$('#hpbar').style.width=`${100*p.hp/p.maxHp}%`;$('#hptext').textContent=`${p.hp}/${p.maxHp}`;$('#hunbar').style.width=`${p.hunger}%`;$('#huntext').textContent=`${p.hunger}/${p.maxHunger}`;$('#lvtext').textContent=p.level;$('#atktext').textContent=atk();$('#deftext').textContent=def();$('#exptext').textContent=p.exp;$('#nextExpText').textContent=p.level>=99?'MAX':nextExp();$('#floorText').textContent=`${state.floor}F / 経過${state.time}`;const di=dangerInfo();$('#dangerText').textContent=di[0];$('#dangerbar').style.width=`${Math.min(100,state.time/42*100)}%`;const sts=[];if(p.hasteActions>0)sts.push(`倍速 残り${Math.ceil(p.hasteActions/2)}巡`);if(p.slimeHits>0)sts.push(`ジェル ${p.slimeHits}/4`);$('#playerstatus').textContent=sts.join(' / ')||'状態異常なし';renderFatigue();renderInventory()}
+function renderStatus(){const p=state.player||freshPlayer();$('#hpbar').style.width=`${100*p.hp/p.maxHp}%`;$('#hptext').textContent=`${p.hp}/${p.maxHp}`;$('#hunbar').style.width=`${p.hunger}%`;$('#huntext').textContent=`${p.hunger}/${p.maxHunger}`;$('#lvtext').textContent=p.level;$('#atktext').textContent=atk();$('#deftext').textContent=def();$('#exptext').textContent=p.exp;$('#nextExpText').textContent=p.level>=99?'MAX':nextExp();$('#floorText').textContent=`${state.floor}F / 経過${state.time}`;const di=dangerInfo();$('#dangerText').textContent=di[0];$('#dangerbar').style.width=`${Math.min(100,state.time/50*100)}%`;const sts=[];if(p.hasteActions>0)sts.push(`倍速 残り${Math.ceil(p.hasteActions/2)}巡`);if(p.slimeHits>0)sts.push(`ジェル ${p.slimeHits}/4`);$('#playerstatus').textContent=sts.join(' / ')||'状態異常なし';renderFatigue();renderInventory()}
 function renderFatigue(){const names={slime:'スライムジェル',dog:'あなほり',rabbit:'バニーウィンク',fairy:'妖精のまもり'};$('#fatigueList').innerHTML=Object.entries(state.blessings||{}).filter(x=>x[1].on).map(([k,v])=>`${names[k]}：疲労 <b>${v.fatigue}</b>/100`).join('<br>')||'加護なし'}
 function renderInventory(){if(!state.player)return;$('#captext').textContent=`所持 ${invCount()}/25　武器：${state.equip.weapon?gearName(state.equip.weapon):'なし'}　盾：${state.equip.shield?gearName(state.equip.shield):'なし'}`;let out='';for(const [k,n] of Object.entries(state.items)){if(n<=0)continue;const d=itemDefs[k];const usable=state.mode==='explore'&&['potion','bread','bigbread','antidote'].includes(k);out+=`<div class="invrow"><b>${esc(d.name)} ×${n}</b><div class="small">${esc(d.desc)}</div>${usable?`<button class="mini" data-useout="${k}">使う</button>`:''}</div>`}
  state.gear.forEach((g,i)=>{const eq=(state.equip[g.cat]===g);out+=`<div class="invrow gear ${eq?'equipped':''}"><b>${esc(gearName(g))}</b><div class="small">${g.cat==='weapon'?`攻撃+${gearDefs[g.key].base+g.plus}`:`防御+${gearDefs[g.key].base+g.plus}`} / +上限${gearDefs[g.key].maxPlus}</div><button class="mini" data-equip="${i}">${eq?'装備中':'装備'}</button></div>`});$('#inventory').innerHTML=out||'<div class="small">所持品なし</div>';$$('[data-useout]').forEach(b=>b.onclick=()=>useOutside(b.dataset.useout));$$('[data-equip]').forEach(b=>b.onclick=()=>equipGear(Number(b.dataset.equip)))}
 function gearName(g){return `${gearDefs[g.key].name}${g.plus?` +${g.plus}`:''}`}
 function equipGear(i){if(state.mode!=='explore'||state.runOver)return;const g=state.gear[i];state.equip[g.cat]=g;addLog(`${gearName(g)}を装備した。`,'info');renderAll()}
-function useOutside(k){if(state.mode!=='explore'||state.runOver||state.items[k]<=0)return;state.items[k]--;if(k==='potion'){const old=state.player.hp;state.player.hp=Math.min(state.player.maxHp,state.player.hp+15);addLog(`回復薬を使い、HPを${state.player.hp-old}回復。`,'good')}if(k==='bread'||k==='bigbread'){const v=k==='bread'?25:60,old=state.player.hunger;state.player.hunger=Math.min(100,state.player.hunger+v);addLog(`${itemDefs[k].name}を食べ、お腹を${state.player.hunger-old}回復。`,'good')}if(k==='antidote')addLog('解毒薬を使った。今は毒状態ではない。','info');spendTime(1,true);renderAll()}
+function useOutside(k){if(state.mode!=='explore'||state.runOver||state.items[k]<=0)return;state.items[k]--;if(k==='potion'){const old=state.player.hp;state.player.hp=Math.min(state.player.maxHp,state.player.hp+30);addLog(`回復薬を使い、HPを${state.player.hp-old}回復。`,'good')}if(k==='bread'||k==='bigbread'){const v=k==='bread'?25:60,old=state.player.hunger;state.player.hunger=Math.min(100,state.player.hunger+v);addLog(`${itemDefs[k].name}を食べ、お腹を${state.player.hunger-old}回復。`,'good')}if(k==='antidote')addLog('解毒薬を使った。今は毒状態ではない。','info');spendTime(1,true);renderAll()}
 function renderContext(){if(!state.map)return;const n=state.map.nodes[state.current];let h=`<h3>${typeMeta[n.type][0]} ${esc(nodeLabel(n))}</h3>`,body='';
  if(n.type==='entrance')body='このフロアの入口。緑枠のノードへ進めます。';
  if(n.type==='empty')body='何もない。少し静かだ。';
@@ -157,12 +160,13 @@ function renderContext(){if(!state.map)return;const n=state.map.nodes[state.curr
 function canForge(cat){const g=state.equip[cat];return !!g&&g.plus<gearDefs[g.key].maxPlus}
 function useForge(cat){const n=state.map.nodes[state.current],g=state.equip[cat];if(n.consumed||!canForge(cat))return;g.plus++;n.consumed=true;addLog(`鍛冶台で${gearName(g)}に強化した。`,'good');spendTime(1,true);renderAll()}
 function useCrystal(k){if(state.items[k]<=0)return;state.items[k]--;if(k==='haste'){state.player.hasteActions=6;state.player.hasteSkip=true;addLog('倍速の杖を水晶に撃ち、反射を自分に当てた。3巡ぶん倍速になった。','good')}else{state.player.hp=Math.max(0,state.player.hp-8);addLog('火球の杖が反射し、自分に8ダメージ！','bad');if(state.player.hp<=0){gameOver('水晶で反射した火球に倒れた。');return}}spendTime(1,true);renderAll()}
+function waitStep(){if(state.mode!=='explore'||state.runOver)return;const before=state.player.hp;if(!spendTime(1,true))return;if(state.player.hunger>0&&state.player.hp<state.player.maxHp){state.player.hp=Math.min(state.player.maxHp,state.player.hp+1);addLog(`足踏み。HPを${state.player.hp-before}自然回復。`,'good')}else if(state.player.hunger===0){addLog('空腹のため、足踏みしても自然回復しない。','bad')}else addLog('足踏みした。HPは満タン。','info');setMessage('その場で足踏みした。');renderAll()}
 function enterNode(id){if(state.mode!=='explore'||state.runOver||!nextNodes().includes(id))return;recoverBlessingsOnMove();if(!spendTime(1,true))return;state.current=id;state.stats.nodes++;const n=state.map.nodes[id];addLog(`${nodeLabel(n)}ノードへ移動。`,'info');if(n.type==='item'&&!n.consumed)pickupNodeItem(n);if(n.type==='encounter'&&!n.cleared){startEncounter(n);return}if(n.type==='empty')n.cleared=true;if(n.type==='exit')n.cleared=true;setMessage(`${nodeLabel(n)}に到着した。`);renderAll()}
 function pickupNodeItem(n){if(invCount()>=25){setMessage('所持上限25。アイテムを拾えなかった。');addLog('所持上限のためアイテムを残した。','bad');return}givePayload(n.payload,`${itemCategoryLabel(n.itemCat)}ノード`);n.consumed=true;n.cleared=true}
 function givePayload(p,source='入手'){if(p.kind==='gear'){const g={key:p.key,cat:gearDefs[p.key].cat,plus:p.plus};state.gear.push(g);addLog(`${source}：${gearName(g)}を入手。`,'good')}else{state.items[p.key]=(state.items[p.key]||0)+p.amount;addLog(`${source}：${itemDefs[p.key].name}${p.amount>1?`（${p.amount}回分）`:''}を入手。`,'good')}renderStatus()}
 function reExplore(){state.stats.reexplores++;for(const n of Object.values(state.map.nodes)){if(n.type==='encounter'&&n.cleared&&Math.random()<.40){n.cleared=false;addLog('再探索で、新たな魔物娘の気配が生まれた。','bad')}}state.current=state.map.entry;addLog(`${state.floor}Fを再探索。アイテムや鍛冶台は復活しない。危険度も維持される。`,'info');setMessage('入口へ戻った。再探索を開始する。');renderAll()}
 function nextFloor(){if(state.floor>=5)return;state.floor++;state.time=0;state.map=generateMap();state.current=state.map.entry;addLog(`${state.floor}Fへ進んだ。`,'info');dogDig();setMessage(`${state.floor}Fに到着した。`);renderAll()}
-function dogDig(){const b=state.blessings.dog;if(!b?.on||b.fatigue>80)return;if(Math.random()<.30){const cat=weighted({potion:30,food:30,book:15,wand:25});const p=makeItemPayload(cat);if(invCount()<25){givePayload(p,'あなほり');b.fatigue+=20;addLog('犬娘の加護「あなほり」が発動。疲労+20。','good')}else addLog('あなほりが何かを見つけたが、所持品がいっぱいだった。','bad')}else addLog('犬娘は地面をくんくん嗅いだが、今回は何も見つからなかった。','info')}
+function dogDig(){const b=state.blessings.dog;if(!b?.on||b.fatigue>80)return;if(Math.random()<.20){const cat=weighted({potion:30,food:30,book:15,wand:25});const p=makeItemPayload(cat);if(invCount()<25){givePayload(p,'あなほり');b.fatigue+=20;addLog('犬娘の加護「あなほり」が発動。疲労+20。','good')}else addLog('あなほりが何かを見つけたが、所持品がいっぱいだった。','bad')}else addLog('犬娘は地面をくんくん嗅いだが、今回は何も見つからなかった。','info')}
 function clearRun(){state.runOver=true;const s=state.stats;showOverlay('試作版クリア',`5F出口に到達しました。戦闘 ${s.battles}回 / 撃破 ${s.kills}体 / 友好解決 ${s.friends}体 / 再探索 ${s.reexplores}回 / 移動 ${s.nodes}ノード。<br>残りHP ${state.player.hp}/${state.player.maxHp}、お腹 ${state.player.hunger}/100。`);setMessage('5Fを踏破した！')}
 function showOverlay(title,body){const o=$('#overlay');o.innerHTML=`<h2>${esc(title)}</h2><div class="small">${body}</div><div class="runbuttons" style="margin-top:8px"><button class="primary" id="restartOverlay">新しく始める</button></div>`;o.classList.add('show');$('#restartOverlay').onclick=newRun}
 function gameOver(why){state.runOver=true;state.mode='explore';showScreens();showOverlay('ゲームオーバー',`${esc(why)}<br>${state.floor}F / 戦闘${state.stats.battles}回 / 再探索${state.stats.reexplores}回`);setMessage(why);renderAll()}
@@ -172,7 +176,7 @@ function newRun(){state.mode='explore';state.floor=1;state.time=0;state.player=f
 function pickEnemyKey(){return weighted(floorCfg[state.floor].enemy)}
 function enemyGroupSize(){const tier=dangerTier(),base=floorCfg[state.floor].multi;if(tier===3)return Math.random()<.25?3:2;const chance=Math.min(80,base+(tier===1?15:tier===2?25:0));return Math.random()*100<chance?2:1}
 function makeEnemy(key,isNew=false){const d=enemyDefs[key];return {id:state.battle.nextId++,key,name:d.name,icon:d.icon,maxHp:d.hp,hp:d.hp,atk:d.atk,def:d.def,exp:d.exp,friend:0,charm:0,sleep:0,actionCount:0,alive:true,isNew}}
-function startEncounter(node){state.mode='battle';state.stats.battles++;state.battle={nodeId:node.id,enemies:[],selected:0,turn:0,distance:false,nextId:1,ended:false};const n=enemyGroupSize();for(let i=0;i<n;i++)state.battle.enemies.push(makeEnemy(pickEnemyKey()));addLog(`${state.battle.enemies.map(e=>e.name).join('、')}と遭遇。`,'bad');setMessage('遭遇開始。対象を選んで行動してください。');showScreens();renderAll();const rabbit=state.battle.enemies.find(e=>enemyDefs[e.key].firstStrike);if(rabbit){addLog('ウサギ娘の「先制」！','bad');enemyPhysical(rabbit,true);renderAll()}}
+function startEncounter(node){state.mode='battle';state.stats.battles++;state.battle={nodeId:node.id,enemies:[],selected:0,turn:0,distance:false,nextId:1,ended:false};const n=enemyGroupSize();for(let i=0;i<n;i++){let key=pickEnemyKey();if(key==='dog'&&state.battle.enemies.some(e=>e.key==='dog')){let guard=0;while(key==='dog'&&guard++<20)key=pickEnemyKey();if(key==='dog')key='slime'}state.battle.enemies.push(makeEnemy(key))}addLog(`${state.battle.enemies.map(e=>e.name).join('、')}と遭遇。`,'bad');setMessage('遭遇開始。対象を選んで行動してください。');showScreens();renderAll();const rabbit=state.battle.enemies.find(e=>enemyDefs[e.key].firstStrike);if(rabbit){addLog('ウサギ娘の「先制」！','bad');enemyPhysical(rabbit,true);renderAll()}}
 function living(){return state.battle?state.battle.enemies.filter(e=>e.alive):[]}
 function selectedEnemy(){if(!state.battle)return null;let e=state.battle.enemies[state.battle.selected];if(!e||!e.alive){const i=state.battle.enemies.findIndex(x=>x.alive);state.battle.selected=Math.max(0,i);e=state.battle.enemies[state.battle.selected]}return e}
 function resetDrawers(){$$('.drawer').forEach(x=>x.classList.remove('show'))}
@@ -185,20 +189,21 @@ function enemyPhysical(e,opening=false){if(!e.alive||state.runOver)return;const 
 function enemyMagic(e){const b=state.blessings.fairy;if(b?.on&&b.fatigue<=20){b.fatigue+=80;addLog(`妖精のまもり！ ${e.name}の魔法を無効化。疲労+80。`,'good');return}state.player.hp=Math.max(0,state.player.hp-5);addLog(`${e.name}の魔法弾。防御無視5ダメージ。`,'bad');if(state.player.hp<=0)gameOver('魔法弾に倒れた。')}
 function battleTurn(){if(state.mode!=='battle'||state.runOver)return;state.battle.turn++;if(!spendTime(1,true))return;let skip=false;if(state.player.hasteActions>0){state.player.hasteActions--;if(state.player.hasteSkip){skip=true;state.player.hasteSkip=false;addLog('倍速でもう一度先に動ける。','good')}else state.player.hasteSkip=true;if(state.player.hasteActions===0)addLog('倍速が切れた。','info')}if(!skip)enemyPhase();state.battle.distance=false;state.battle.enemies.forEach(e=>e.isNew=false);renderAll()}
 function enemyPhase(){const snap=living();for(const e of snap){if(state.runOver||state.mode!=='battle'||!e.alive)continue;if(e.isNew){addLog(`${e.name}は乱入直後なのでこの巡は行動しない。`,'info');continue}if(e.sleep>0){e.sleep--;addLog(`${e.name}は眠っている。`,'info');continue}if(e.charm>0){e.charm--;const others=living().filter(x=>x.id!==e.id);if(others.length){const t=choice(others),d=Math.max(1,e.atk-t.def);t.hp=Math.max(0,t.hp-d);addLog(`魅了された${e.name}が${t.name}を攻撃。${d}ダメージ。`,'good');if(t.hp<=0){t.alive=false;addLog(`${t.name}は倒れた。魅了による撃破なのでEXPなし。`,'info');maybeLoot(t,'魅了による撃破')}}else addLog(`魅了された${e.name}は何もしない。`,'info');continue}e.actionCount++;const magic=enemyDefs[e.key].magic&&e.actionCount%2===0;if(state.battle.distance&&!magic){addLog(`${e.name}は距離を詰めるため行動を使った。`,'info');continue}magic?enemyMagic(e):enemyPhysical(e)}checkEncounterEnd()}
-function doDistance(){state.battle.distance=true;const tier=dangerTier(),rate=25+[0,5,10,20][tier];addLog(`距離を取った。乱入判定 ${rate}%。`,'info');if(living().length<3&&Math.random()*100<rate){const e=makeEnemy(pickEnemyKey(),true);state.battle.enemies.push(e);addLog(`${e.name}が乱入した！`,'bad')}else if(living().length<3)addLog('今回は乱入者なし。','info');battleTurn()}
+function doDistance(){state.battle.distance=true;const tier=dangerTier(),rate=20+[0,5,10,20][tier];addLog(`距離を取った。乱入判定 ${rate}%。`,'info');if(living().length<3&&Math.random()*100<rate){let key=pickEnemyKey();if(key==='dog'&&living().some(e=>e.key==='dog')){let guard=0;while(key==='dog'&&guard++<20)key=pickEnemyKey();if(key==='dog')key='slime'}const e=makeEnemy(key,true);state.battle.enemies.push(e);addLog(`${e.name}が乱入した！`,'bad')}else if(living().length<3)addLog('今回は乱入者なし。','info');battleTurn()}
 function talk(){const e=selectedEnemy();if(!e)return;if(e.charm>0){e.alive=false;addLog(`魅了中の${e.name}に話しかけ、帰ってもらった。`,'good');maybeLoot(e,'魅了して帰す');checkEncounterEnd();renderAll();return}const lines={slime:'「……ぷる？」',dog:'「まだ信用したわけじゃないからね！」',rabbit:'「に、逃げないの？」',fairy:'「距離を取っても魔法は届くわよ。」'};setMessage(`${e.name} ${lines[e.key]}`);addLog(`${e.name}に話しかけた。（ターン消費なし）`,'info')}
 function giveGift(k){const e=selectedEnemy();if(!e||(state.items[k]||0)<=0)return;state.items[k]--;const gain=enemyDefs[e.key].gift===k?45:10;e.friend=Math.min(100,e.friend+gain);addLog(`${e.name}に${itemDefs[k].name}。友好+${gain}。`,'good');if(e.friend>=100)addLog('友好解決を選べる。','good');resetDrawers();renderAll()}
 function befriend(){const e=selectedEnemy();if(!e||e.friend<100)return;const gain=Math.ceil(e.exp*1.5);state.player.exp+=gain;state.stats.friends++;e.alive=false;addLog(`${e.name}と友好解決。EXP ${gain}。`,'good');addLog('加護獲得は未実装。','info');checkLevel();maybeLoot(e,'友好解決');checkEncounterEnd();renderAll()}
 function maybeLoot(e,why){if(Math.random()>=.35){addLog(`${why}のアイテム抽選は外れ。`,'info');return}if(invCount()>=25){addLog(`${e.name}が何かをくれそうだったが、所持品がいっぱい。`,'bad');return}const cat=weighted(e.key==='slime'?{potion:35,food:30,wand:10,weapon:10,gift:15}:e.key==='dog'?{potion:15,food:35,wand:5,weapon:30,gift:15}:e.key==='rabbit'?{potion:15,food:25,wand:10,weapon:15,gift:35}:{potion:20,food:10,wand:45,weapon:10,gift:15});givePayload(makeItemPayload(cat),`${e.name}から`)}
 function canFlee(){return state.player.hasteActions>0||living().every(e=>e.charm>0||e.sleep>0)}
 function flee(){if(!canFlee())return;addLog('条件を満たしているため確実に逃走。敵HPは次回全回復する。','info');state.mode='explore';state.battle=null;setMessage('遭遇から逃げた。ノードは残っている。');showScreens();renderAll()}
-function useBattleItem(k){if((state.items[k]||0)<=0)return;const e=selectedEnemy();if(k==='potion'){state.items[k]--;const old=state.player.hp;state.player.hp=Math.min(state.player.maxHp,state.player.hp+15);addLog(`回復薬。HP${state.player.hp-old}回復。`,'good')}if(k==='bread'||k==='bigbread'){state.items[k]--;const v=k==='bread'?25:60,old=state.player.hunger;state.player.hunger=Math.min(100,state.player.hunger+v);addLog(`${itemDefs[k].name}。お腹${state.player.hunger-old}回復。`,'good')}if(k==='fire'){state.items[k]--;damageEnemy(e,8,'火球の杖')}if(k==='sleep'){state.items[k]--;living().forEach(t=>t.sleep=2);addLog('睡眠の書。敵全体が眠った。','good')}resetDrawers();if(state.mode==='battle')battleTurn()}
+function useBattleItem(k){if((state.items[k]||0)<=0)return;const e=selectedEnemy();if(k==='potion'){state.items[k]--;const old=state.player.hp;state.player.hp=Math.min(state.player.maxHp,state.player.hp+30);addLog(`回復薬。HP${state.player.hp-old}回復。`,'good')}if(k==='bread'||k==='bigbread'){state.items[k]--;const v=k==='bread'?25:60,old=state.player.hunger;state.player.hunger=Math.min(100,state.player.hunger+v);addLog(`${itemDefs[k].name}。お腹${state.player.hunger-old}回復。`,'good')}if(k==='fire'){state.items[k]--;damageEnemy(e,8,'火球の杖')}if(k==='sleep'){state.items[k]--;living().forEach(t=>t.sleep=2);addLog('睡眠の書。敵全体が眠った。','good')}resetDrawers();if(state.mode==='battle')battleTurn()}
 function useBunny(){const e=selectedEnemy(),b=state.blessings.rabbit;if(!e||!b?.on||b.fatigue>60)return;e.charm=3;b.fatigue+=40;addLog(`バニーウィンク！ ${e.name}を3巡魅了、疲労+40。`,'good');resetDrawers();battleTurn()}
 function checkEncounterEnd(){if(state.mode!=='battle'||living().length>0)return;const node=state.map.nodes[state.battle.nodeId];node.cleared=true;state.mode='explore';state.battle=null;setMessage('遭遇を切り抜けた。探索へ戻る。');showScreens();renderAll()}
 function showScreens(){$('#exploreScreen').classList.toggle('show',state.mode==='explore');$('#battleScreen').classList.toggle('show',state.mode==='battle');$('#modeTitle').textContent=state.mode==='explore'?`探索：${state.floor}F`:`戦闘：${state.floor}F`}
 function renderAll(){showScreens();renderStatus();if(state.mode==='explore'){renderMap();renderContext()}else renderBattle();renderLog()}
 $$('.action').forEach(b=>b.addEventListener('click',()=>{if(b.disabled)return;const a=b.dataset.action;resetDrawers();if(a==='attack')playerAttack();else if(a==='distance')doDistance();else if(a==='talk')talk();else if(a==='befriend')befriend();else if(a==='flee')flee();else if(a==='item'){$('#itemDrawer').classList.add('show');renderBattleDrawers()}else if(a==='gift'){$('#giftDrawer').classList.add('show');renderBattleDrawers()}else if(a==='blessing'){$('#blessingDrawer').classList.add('show');renderBattleDrawers()}}));
 $$('input[data-blessing]').forEach(cb=>cb.addEventListener('change',()=>{if($$('input[data-blessing]:checked').length>3){cb.checked=false;setMessage('加護は最大3個までです。')}else setMessage('加護セット変更は次の「最初から」で反映されます。')}));
+$('#waitBtn').onclick=waitStep;
 $('#newRunBtn').onclick=()=>{if(confirm('現在の試作プレイを破棄して最初から始めますか？'))newRun()};
 newRun();
 })();
