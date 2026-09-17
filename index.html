@@ -31,9 +31,9 @@ body{min-height:100dvh}button{font:inherit;color:inherit}.screen{display:none;mi
 </head>
 <body>
 <section id="selectScreen" class="screen active">
-  <div class="topbar"><div><h1>魔物娘ローグライト</h1><div class="sub">ミニダンジョン v0.2<br>3体を選び、10マス目のポダルゲを目指します。</div></div><span id="pickCount" class="badge">0 / 3</span></div>
+  <div class="topbar"><div><h1>魔物娘ローグライト</h1><div class="sub">ミニダンジョン v0.3<br>3体を選び、10マス目のポダルゲを目指します。</div></div><span id="pickCount" class="badge">0 / 3</span></div>
   <div class="section-title">パーティを選択</div><div id="selectGrid" class="select-grid"></div>
-  <div class="info"><b>今回の周回ルール</b><br>HPはマスをまたいで継続。状態異常・バフ・スタックは戦闘終了時にリセットされます。1〜9マス目は最低1つ戦闘が出現し、10マス目はボス固定です。</div>
+  <div class="info"><b>今回の周回ルール</b><br>HPはマスをまたいで継続。状態異常・バフ・スタックは戦闘終了時にリセットされます。通常戦勝利時は最大HPの10%回復。1〜9マス目は最低1つ戦闘が出現し、10マス目はボス固定です。</div>
   <div class="bottom-action"><div class="bottom-inner"><button id="startBtn" class="primary" disabled>3体選んでください</button></div></div>
 </section>
 
@@ -132,7 +132,7 @@ const ENEMIES={
   {name:'プレジャースレッド',kind:'damage',type:'pleasure',damage:20,desc:'20快楽ダメージ'},
   {name:'毒噛みつき',kind:'poisonBite',type:'physical',damage:12,desc:'12物理ダメージ、40%で【毒3】'},
   {name:'フォシルスレッド',kind:'seal',type:'pleasure',damage:10,desc:'10快楽ダメージ、【封印2】'}]},
- podarge:{id:'podarge',name:'ポダルゲ',hp:300,image:'podarge',boss:true,actions:[
+ podarge:{id:'podarge',name:'ポダルゲ',hp:260,image:'podarge',boss:true,actions:[
   {id:'attack',name:'攻撃',kind:'damage',type:'physical',damage:13,hits:2,desc:'13物理ダメージ×2',weight:4},
   {id:'dance',name:'ハーピーダンス',kind:'dance',desc:'与ダメージ+2、3ターン回避率+10%',weight:2},
   {id:'rain',name:'フェザーレイン',kind:'damage',type:'physical',damage:6,hits:4,desc:'6物理ダメージ×4',weight:3},
@@ -246,7 +246,7 @@ function turnEnd(){
 }
 function runTurn(){if(!choiceId||S.ended)return;if(S.status.seal&&S.status.seal.id===choiceId)return;const chosen=partyChar(choiceId),hadEvadeBuff=S.enemy.evadeBuffTurns>0,hadDodge100=S.enemy.dodge100Turns>0;S.golemWaiting=false;S.elfGuard=false;S.skipEnemy=false;addLog(`${chosen.name}を「選択」。`,'note');const waits=S.party.filter(c=>c.id!==choiceId),early=['slime','arachne','fairy','golem','demon','alraune'];waits.filter(c=>early.includes(c.id)).forEach(c=>{if(!S.ended)executeWait(c)});waits.filter(c=>!early.includes(c.id)).forEach(c=>{if(!S.ended)executeWait(c)});if(!S.ended)executeSelected(chosen);if(hadEvadeBuff&&S.enemy.evadeBuffTurns>0)S.enemy.evadeBuffTurns--;if(hadDodge100&&S.enemy.dodge100Turns>0)S.enemy.dodge100Turns--;if(!S.ended)runEnemy();if(!S.ended)turnEnd();renderBattle()}
 function checkBattleEnd(){if(S.ended)return true;if(S.enemy.hp<=0){S.ended=true;S.won=true;battleVictory();return true}if(S.hp<=0){S.ended=true;S.won=false;R.hp=0;renderBattle();setTimeout(()=>endRun(false,'パーティHPが0になりました。'),150);return true}return false}
-function battleVictory(){R.hp=S.hp;R.stats.kills++;if(itemCount('sash')>0){const id=R.party[Math.floor(Math.random()*R.party.length)];R.atkBonus[id]+=2;addLog(`修練の襷：${charById(id).name}の攻撃力+2`,'good')}renderBattle();if(S.enemy.boss){setTimeout(()=>clearRun(),300);return}const drop=rollItem('drop');setTimeout(()=>openDrop(drop),300)}
+function battleVictory(){R.stats.kills++;if(!S.enemy.boss){const before=S.hp,amount=Math.ceil(S.maxHp*.10);S.hp=Math.min(S.maxHp,S.hp+amount);const healed=S.hp-before;if(healed>0){R.stats.healed+=healed;addLog(`戦闘勝利：最大HPの10%回復 → HP +${healed}`,'good')}else addLog(`戦闘勝利：HPは最大です。`,'note')}R.hp=S.hp;if(itemCount('sash')>0){const id=R.party[Math.floor(Math.random()*R.party.length)];R.atkBonus[id]+=2;addLog(`修練の襷：${charById(id).name}の攻撃力+2`,'good')}renderBattle();if(S.enemy.boss){setTimeout(()=>clearRun(),300);return}const drop=rollItem('drop');setTimeout(()=>openDrop(drop),300)}
 function openDrop(it){openChoice('戦利品',`${S.enemy.name}を撃破。アイテムを1個獲得します。（80 / 18 / 2）`,itemCard(it,0,'takeDrop()'));window._drop=it}
 function takeDrop(){acquireItem(window._drop);closeChoice();advanceFloor()}
 function clearRun(){R.hp=S?.hp??R.hp;endRun(true,'10マス目のポダルゲを撃破しました。')}
