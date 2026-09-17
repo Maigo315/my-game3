@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
 <meta name="theme-color" content="#120f19" />
-<title>魔物娘ローグライト ミニダンジョン v0.9 Card Role Contrast</title>
+<title>魔物娘ローグライト ミニダンジョン v1.0 Battle UI Polish</title>
 <style>
 :root{
   --bg:#100d16;--panel:#1a1622;--panel2:#231d2e;--line:#3a3048;--text:#f8f2ff;--muted:#b9acc7;
@@ -50,8 +50,13 @@ body{min-height:100dvh}button{font:inherit;color:inherit}.screen{display:none;mi
 .fx-pop.damage{color:#ffd6de}.fx-pop.heal{color:#c7ffd6}.fx-pop.crit{color:#ffe38a;font-size:12px;letter-spacing:.06em}.fx-pop.miss{color:#eef2ff;font-size:12px;letter-spacing:.04em}.fx-pop.good{color:#cbffe8;border-color:#356d55;background:#122019eb}.fx-pop.bad{color:#ffd5dc;border-color:#7a4250;background:#26121ae8}.fx-pop.info{color:#e9ddff;border-color:#5e4d76;background:#1d1526eb}.fx-pop.resup{color:#cbffe8;border-color:#356d55;background:#122019eb}.fx-pop.resdown{color:#ffd7de;border-color:#7a4250;background:#26121ae8}.fx-pop.status{color:#ffe7be;border-color:#8b6b3f;background:#2b1b14ea}.fx-pop.small{font-size:8px;padding:3px 6px}.fx-pop.damage.small,.fx-pop.heal.small,.fx-pop.crit.small,.fx-pop.miss.small{font-size:12px;padding:0}
 #enemyFx{z-index:3}#partyFx{z-index:3}#cardFx{z-index:7}
 @keyframes fxRise{0%{opacity:0;transform:translate(-50%,8px) scale(.94)}15%{opacity:1}65%{opacity:1}100%{opacity:0;transform:translate(-50%,-22px) scale(1.02)}}
-.selected-detail{margin-top:6px;border:1px solid #4b3a58;border-radius:13px;background:linear-gradient(135deg,#211827,#15111b);padding:7px 9px;min-height:82px;box-shadow:0 6px 16px #0003}.selected-detail.empty{display:grid;place-items:center;text-align:center;color:#8e8099;font-size:9px}.sd-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:4px}.sd-name{font-size:12px;font-weight:950}.sd-atk{font-size:8px;color:#cbbbd7}.sd-line{font-size:8.5px;line-height:1.35;color:#cbbdd4;margin-top:2px}.sd-line b{color:#f2e6fa}.sd-ability{font-size:7.5px;line-height:1.3;color:#94869e;margin-top:3px;padding-top:3px;border-top:1px solid #2e2636}
-.logbox{margin-top:5px;border:1px solid var(--line);border-radius:11px;background:#0e0b12;overflow:hidden}.log-head{padding:5px 8px;border-bottom:0;font-size:8px;color:#bbaac8;line-height:1.2}.log-head:after{content:" ︾";float:right;color:#74667e}.log{height:72px;overflow:auto;padding:6px 8px;border-top:1px solid #29212f;font-size:8px;line-height:1.45;color:#c5b7cf}.log .turn{color:#c99cff;font-weight:900}.log .good{color:var(--good)}.log .bad{color:var(--bad)}.log .hit{color:#ffd19b}.log .note{color:#9dcaff}
+.selected-detail{margin-top:6px;border:1px solid #4b3a58;border-radius:13px;background:linear-gradient(135deg,#211827,#15111b);padding:7px 9px;min-height:82px;box-shadow:0 4px 12px #00025}.selected-detail.empty{display:grid;place-items:center;text-align:center;color:#8e8099;font-size:9px}.sd-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:4px}.sd-name{font-size:12px;font-weight:950}.sd-atk{font-size:8px;color:#cbbbd7}.sd-line{font-size:8.5px;line-height:1.35;color:#cbbdd4;margin-top:2px}.sd-line b{color:#f2e6fa}.sd-ability{font-size:7.5px;line-height:1.3;color:#94869e;margin-top:3px;padding-top:3px;border-top:1px solid #2e2636}
+/* v1.0: battle log is retained as a quiet diagnostic history */
+.logbox{margin:3px 1px 0;border:1px solid transparent;border-radius:10px;background:transparent;overflow:hidden;transition:border-color .16s ease,background .16s ease}
+.log-head{list-style:none;display:flex;align-items:center;justify-content:flex-end;gap:4px;width:max-content;margin-left:auto;padding:3px 5px;font-size:7px;color:#776b81;line-height:1.2;cursor:pointer;user-select:none}
+.log-head::-webkit-details-marker{display:none}.log-head:before{content:"≡";font-size:9px;color:#655a70}.log-head:after{content:" 履歴";letter-spacing:.02em}
+.logbox[open]{border-color:#2f2738;background:#0e0b12;margin-top:4px}.logbox[open] .log-head{width:100%;justify-content:flex-start;margin-left:0;padding:5px 8px;color:#aa9bb6}.logbox[open] .log-head:before{content:"⌄";font-size:9px}.logbox[open] .log-head:after{content:" 戦闘履歴"}
+.log{height:70px;overflow:auto;padding:6px 8px;border-top:1px solid #29212f;font-size:7.5px;line-height:1.45;color:#ad9fb7}.log .turn{color:#b88be7;font-weight:900}.log .good{color:#78c99b}.log .bad{color:#e67f8e}.log .hit{color:#ddb77e}.log .note{color:#86acd0}
 #battleScreen .bottom-action{padding-top:7px}
 #battleScreen .primary,#battleScreen .secondary{min-height:47px}
 /* v0.7 sequential turn presentation + speed + stronger enemy reactions */
@@ -79,7 +84,7 @@ body{min-height:100dvh}button{font:inherit;color:inherit}.screen{display:none;mi
 @keyframes enemyStageFlash{0%{opacity:0}28%{opacity:1}100%{opacity:0}}
 @keyframes enemyHitFlash{0%{opacity:0}20%{opacity:1}100%{opacity:0}}
 @media(max-height:760px){
- #battleScreen{padding-top:5px;padding-bottom:calc(73px + var(--safe))}.battle-stage{height:216px}.enemy-portrait{left:6px;right:6px;top:58px;bottom:6px}.intent-card{margin-top:5px;padding:6px 8px}.party-panel{margin-top:5px;padding:6px 7px}.party-panel .chips{max-height:20px;overflow-x:auto;flex-wrap:nowrap}.battle-card img{height:58px}.battle-card{padding:4px}.bc-head{margin-top:3px}.selected-detail{min-height:70px;padding:6px 8px}.sd-ability{display:none}.logbox{margin-top:4px}.log-head{padding:4px 7px}
+ #battleScreen{padding-top:5px;padding-bottom:calc(73px + var(--safe))}.battle-stage{height:216px}.enemy-portrait{left:6px;right:6px;top:58px;bottom:6px}.intent-card{margin-top:5px;padding:6px 8px}.party-panel{margin-top:5px;padding:6px 7px}.party-panel .chips{max-height:20px;overflow-x:auto;flex-wrap:nowrap}.battle-card img{height:58px}.battle-card{padding:4px}.bc-head{margin-top:3px}.selected-detail{min-height:70px;padding:6px 8px}.sd-ability{display:none}.logbox{margin-top:2px}.logbox[open]{margin-top:3px}.logbox[open] .log-head{padding:4px 7px}
 }
 @media(max-height:670px){.battle-stage{height:188px}.enemy-portrait{top:54px;bottom:4px}.intent-card{grid-template-columns:26px 1fr}.intent-icon{width:26px;height:26px}.battle-card img{height:48px}.selected-detail{min-height:60px}.sd-line{font-size:8px}.party-panel .chips{display:none}.logbox{display:none}}
 /* overlays */
@@ -116,7 +121,7 @@ body{min-height:100dvh}button{font:inherit;color:inherit}.screen{display:none;mi
   <div class="party-panel"><div id="partyFx" class="fx-layer"></div><div class="party-title"><strong>味方パーティ</strong><span id="battleHpText"></span></div><div class="bar"><i id="battleHpBar"></i></div><div id="partyChips" class="chips"></div></div>
   <div id="actionSectionTitle" class="section-title">行動する魔物娘</div><div class="battle-card-wrap"><div id="cardFx" class="fx-layer"></div><div id="battleCards" class="battle-cards"></div></div>
   <div id="selectedDetail" class="selected-detail empty">3人から行動する魔物娘を選択</div>
-  <details class="logbox"><summary class="log-head">戦闘ログ</summary><div id="battleLog" class="log"></div></details>
+  <details class="logbox"><summary class="log-head" aria-label="戦闘履歴を開く"></summary><div id="battleLog" class="log"></div></details>
   <div class="bottom-action"><div class="bottom-inner"><button id="retireBattle" class="secondary">リタイア</button><button id="turnBtn" class="primary" disabled>魔物娘を選択</button></div></div>
 </section>
 
