@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
 <meta name="theme-color" content="#120f19" />
-<title>魔物娘ローグライト ミニダンジョン v0.5 Compact UI</title>
+<title>魔物娘ローグライト ミニダンジョン v0.7 Speed & Reaction</title>
 <style>
 :root{
   --bg:#100d16;--panel:#1a1622;--panel2:#231d2e;--line:#3a3048;--text:#f8f2ff;--muted:#b9acc7;
@@ -46,15 +46,31 @@ body{min-height:100dvh}button{font:inherit;color:inherit}.screen{display:none;mi
 .logbox{margin-top:5px;border:1px solid var(--line);border-radius:11px;background:#0e0b12;overflow:hidden}.log-head{padding:5px 8px;border-bottom:0;font-size:8px;color:#bbaac8;line-height:1.2}.log-head:after{content:" ︾";float:right;color:#74667e}.log{height:72px;overflow:auto;padding:6px 8px;border-top:1px solid #29212f;font-size:8px;line-height:1.45;color:#c5b7cf}.log .turn{color:#c99cff;font-weight:900}.log .good{color:var(--good)}.log .bad{color:var(--bad)}.log .hit{color:#ffd19b}.log .note{color:#9dcaff}
 #battleScreen .bottom-action{padding-top:7px}
 #battleScreen .primary,#battleScreen .secondary{min-height:47px}
-/* v0.6 sequential turn presentation */
+/* v0.7 sequential turn presentation + speed + stronger enemy reactions */
 #battleScreen.resolving .battle-card{pointer-events:none}
 #battleScreen.resolving .section-title:after{content:"処理中";color:var(--gold)}
 .battle-card.phase-active{border-color:var(--gold);box-shadow:0 0 0 2px #ffd77e35,0 0 24px #ffd77e30,0 8px 18px #0005;transform:translateY(-3px) scale(1.015)}
 .battle-card.phase-active.phase-wait .mode{background:#4f7f67;color:#eafff4}
 .battle-card.phase-active.phase-select .mode{background:var(--violet);color:#160d1e}
-.battle-stage.enemy-active{border-color:#ff9b9b;box-shadow:0 0 0 2px #ff8c9a22,0 0 30px #ff718b24,0 12px 32px #0008,inset 0 1px #ffffff0d}
-.battle-stage.enemy-active .enemy-portrait img{animation:enemyActPulse .52s ease-in-out}
-@keyframes enemyActPulse{0%{filter:drop-shadow(0 14px 14px #0009);transform:translateY(var(--portrait-offset,-2px)) scale(var(--portrait-scale,1))}45%{filter:drop-shadow(0 14px 18px #ff8c9a66);transform:translateY(calc(var(--portrait-offset,-2px) - 2px)) scale(calc(var(--portrait-scale,1) * 1.025))}100%{filter:drop-shadow(0 14px 14px #0009);transform:translateY(var(--portrait-offset,-2px)) scale(var(--portrait-scale,1))}}
+.battle-top-actions{display:flex;align-items:center;gap:5px}
+.speed-btn{border:1px solid var(--line);border-radius:999px;background:#17131f;color:#d9cbe3;padding:4px 7px;font-size:8px;font-weight:800;white-space:nowrap;cursor:pointer;min-height:26px}
+.speed-btn:active{transform:translateY(1px)}
+.battle-stage:after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;border-radius:inherit;opacity:0}
+.battle-stage.enemy-windup{border-color:#ffb0a3;box-shadow:0 0 0 2px #ff9b8b28,0 0 34px #ff876a30,0 12px 32px #0008,inset 0 1px #ffffff0d}
+.battle-stage.enemy-windup:after{animation:enemyStageWarm .5s ease-out;background:radial-gradient(circle at 50% 55%,#ffad7d25 0,transparent 56%)}
+.battle-stage.enemy-windup .enemy-portrait img{animation:enemyWindup .52s cubic-bezier(.2,.7,.2,1)}
+.battle-stage.enemy-strike{border-color:#ff707f;box-shadow:0 0 0 2px #ff6d7d48,0 0 42px #ff516d3a,0 12px 32px #0008,inset 0 1px #ffffff0d}
+.battle-stage.enemy-strike:after{animation:enemyStageFlash .42s ease-out;background:linear-gradient(180deg,#ff7b8240,transparent 66%)}
+.battle-stage.enemy-strike .enemy-portrait img{animation:enemyStrike .48s cubic-bezier(.18,.78,.28,1)}
+.battle-stage.enemy-hit{border-color:#ffd1a2;box-shadow:0 0 0 2px #ffd08f35,0 0 34px #ffb96a2c,0 12px 32px #0008,inset 0 1px #ffffff0d}
+.battle-stage.enemy-hit:after{animation:enemyHitFlash .38s ease-out;background:#fff2d82a}
+.battle-stage.enemy-hit .enemy-portrait img{animation:enemyHit .38s cubic-bezier(.2,.8,.3,1)}
+@keyframes enemyWindup{0%{filter:drop-shadow(0 14px 14px #0009);transform:translateY(var(--portrait-offset,-2px)) scale(var(--portrait-scale,1))}55%{filter:drop-shadow(0 17px 22px #ff9d7775);transform:translateY(calc(var(--portrait-offset,-2px) - 7px)) scale(calc(var(--portrait-scale,1) * 1.055))}100%{filter:drop-shadow(0 14px 14px #0009);transform:translateY(calc(var(--portrait-offset,-2px) - 2px)) scale(calc(var(--portrait-scale,1) * 1.025))}}
+@keyframes enemyStrike{0%{filter:drop-shadow(0 14px 14px #0009);transform:translateY(calc(var(--portrait-offset,-2px) - 2px)) scale(calc(var(--portrait-scale,1) * 1.025))}35%{filter:drop-shadow(0 20px 25px #ff637a95) brightness(1.12);transform:translateY(calc(var(--portrait-offset,-2px) + 11px)) scale(calc(var(--portrait-scale,1) * 1.12)) rotate(-1deg)}65%{transform:translateY(calc(var(--portrait-offset,-2px) + 5px)) scale(calc(var(--portrait-scale,1) * 1.075)) rotate(1deg)}100%{filter:drop-shadow(0 14px 14px #0009);transform:translateY(var(--portrait-offset,-2px)) scale(var(--portrait-scale,1)) rotate(0)}}
+@keyframes enemyHit{0%{filter:drop-shadow(0 14px 14px #0009);transform:translateY(var(--portrait-offset,-2px)) translateX(0) scale(var(--portrait-scale,1))}28%{filter:drop-shadow(0 14px 18px #ffd7a879) brightness(1.35);transform:translateY(var(--portrait-offset,-2px)) translateX(10px) scale(calc(var(--portrait-scale,1) * .965))}55%{transform:translateY(var(--portrait-offset,-2px)) translateX(-5px) scale(calc(var(--portrait-scale,1) * .985))}100%{filter:drop-shadow(0 14px 14px #0009);transform:translateY(var(--portrait-offset,-2px)) translateX(0) scale(var(--portrait-scale,1))}}
+@keyframes enemyStageWarm{0%{opacity:0}45%{opacity:1}100%{opacity:0}}
+@keyframes enemyStageFlash{0%{opacity:0}28%{opacity:1}100%{opacity:0}}
+@keyframes enemyHitFlash{0%{opacity:0}20%{opacity:1}100%{opacity:0}}
 @media(max-height:760px){
  #battleScreen{padding-top:5px;padding-bottom:calc(73px + var(--safe))}.battle-stage{height:216px}.enemy-portrait{left:6px;right:6px;top:58px;bottom:6px}.intent-card{margin-top:5px;padding:6px 8px}.party-panel{margin-top:5px;padding:6px 7px}.party-panel .chips{max-height:20px;overflow-x:auto;flex-wrap:nowrap}.battle-card img{height:58px}.battle-card{padding:4px}.bc-head{margin-top:3px}.selected-detail{min-height:70px;padding:6px 8px}.sd-ability{display:none}.logbox{margin-top:4px}.log-head{padding:4px 7px}
 }
@@ -66,7 +82,7 @@ body{min-height:100dvh}button{font:inherit;color:inherit}.screen{display:none;mi
 </head>
 <body>
 <section id="selectScreen" class="screen active">
-  <div class="topbar"><div><h1>魔物娘ローグライト</h1><div class="sub">ミニダンジョン v0.5 Compact UI<br>3体を選び、10マス目のポダルゲを目指します。</div></div><span id="pickCount" class="badge">0 / 3</span></div>
+  <div class="topbar"><div><h1>魔物娘ローグライト</h1><div class="sub">ミニダンジョン v0.7 Speed & Reaction<br>3体を選び、10マス目のポダルゲを目指します。</div></div><span id="pickCount" class="badge">0 / 3</span></div>
   <div class="section-title">パーティを選択</div><div id="selectGrid" class="select-grid"></div>
   <div class="info"><b>今回の周回ルール</b><br>HPはマスをまたいで継続。状態異常・バフ・スタックは戦闘終了時にリセットされます。通常戦勝利時は最大HPの10%回復。1〜9マス目は最低1つ戦闘が出現し、10マス目はボス固定です。</div>
   <div class="bottom-action"><div class="bottom-inner"><button id="startBtn" class="primary" disabled>3体選んでください</button></div></div>
@@ -83,7 +99,7 @@ body{min-height:100dvh}button{font:inherit;color:inherit}.screen{display:none;mi
 </section>
 
 <section id="battleScreen" class="screen">
-  <div class="topbar"><div><h1 id="battleTitle">戦闘</h1><div class="sub" id="battleSub">次の行動を見て1体を選択。</div></div><span id="turnBadge" class="badge">TURN 1</span></div>
+  <div class="topbar"><div><h1 id="battleTitle">戦闘</h1><div class="sub" id="battleSub">次の行動を見て1体を選択。</div></div><div class="battle-top-actions"><button id="speedBtn" class="speed-btn">速度：標準</button><span id="turnBadge" class="badge">TURN 1</span></div></div>
   <div id="battleStage" class="battle-stage">
     <div class="enemy-hud"><div class="enemy-hud-top"><div id="enemyName" class="enemy-name"></div><div id="enemyHpText" class="enemy-hp-num"></div></div><div class="bar enemy"><i id="enemyHpBar"></i></div></div>
     <div class="enemy-portrait"><img id="enemyImg"></div>
@@ -182,6 +198,13 @@ const ENEMIES={
 const $=id=>document.getElementById(id), clamp=(n,a,b)=>Math.max(a,Math.min(b,n)), rnd=p=>Math.random()*100<p, esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 let selectedIds=[],R=null,S=null,choiceId=null,toastTimer=null;
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const SPEEDS=[{id:'slow',label:'ゆっくり',mult:1.55},{id:'normal',label:'標準',mult:1.20},{id:'fast',label:'高速',mult:.75},{id:'ultra',label:'超高速',mult:.30}];
+let speedIndex=1;
+const speedNow=()=>SPEEDS[speedIndex];
+const pacedSleep=ms=>sleep(Math.max(45,Math.round(ms*speedNow().mult)));
+function cycleSpeed(){speedIndex=(speedIndex+1)%SPEEDS.length;renderSpeedButton()}
+function renderSpeedButton(){const b=$('speedBtn');if(b)b.textContent=`速度：${speedNow().label}`}
+
 const charById=id=>CHARACTERS.find(c=>c.id===id), itemById=id=>ITEMS.find(i=>i.id===id), itemCount=id=>R?.items?.[id]||0, rarityLabel=r=>r==='common'?'コモン':r==='rare'?'レア':'ユニーク';
 function showScreen(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');window.scrollTo(0,0)}
 function toast(msg){$('toast').textContent=msg;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),1500)}
@@ -237,7 +260,7 @@ function acquireItem(it){const oldBackpack=itemCount('backpack');R.items[it.id]=
 function consumeUnique(id){if(itemCount(id)>0){R.items[id]--;if(R.items[id]<=0)delete R.items[id];toast(`${itemById(id).name} が消滅した`)}}
 
 function startBattle(enemyId){
- const e0=ENEMIES[enemyId];R.stats.battles++;const party=R.party.map(id=>{const c=charById(id);return {...c,currentAtk:currentAtk(id)}});S={turn:1,party,hp:R.hp,maxHp:R.maxHp,res:{gel:0,wild:0,mystic:0,nature:0,magic:0,material:0,wrath:0,immortal:0,sea:0,faith:0,lucky:0},status:{poisonTurns:0,charm:0,curse:0,shock:0,seal:null},enemy:{...e0,hp:e0.hp,maxHp:e0.hp,status:{poisonTurns:0,charm:0,curse:0,shock:0},actionIndex:0,flatDamage:0,crit:0,evade:0,evadeBuffTurns:0,dodge100Turns:0,lastAction:null,windPending:false,windTriggered:false,intent:null},skipEnemy:false,golemWaiting:false,elfGuard:false,arachneTriggered:false,ended:false,won:false,animating:false,phase:null,log:[],stats:Object.fromEntries(party.map(c=>[c.id,{selects:0,waits:0,damage:0,heal:0}]))};
+ const e0=ENEMIES[enemyId];R.stats.battles++;const party=R.party.map(id=>{const c=charById(id);return {...c,currentAtk:currentAtk(id)}});S={turn:1,party,hp:R.hp,maxHp:R.maxHp,res:{gel:0,wild:0,mystic:0,nature:0,magic:0,material:0,wrath:0,immortal:0,sea:0,faith:0,lucky:0},status:{poisonTurns:0,charm:0,curse:0,shock:0,seal:null},enemy:{...e0,hp:e0.hp,maxHp:e0.hp,status:{poisonTurns:0,charm:0,curse:0,shock:0},actionIndex:0,flatDamage:0,crit:0,evade:0,evadeBuffTurns:0,dodge100Turns:0,lastAction:null,windPending:false,windTriggered:false,intent:null},skipEnemy:false,golemWaiting:false,elfGuard:false,arachneTriggered:false,enemyAnimState:null,ended:false,won:false,animating:false,phase:null,log:[],stats:Object.fromEntries(party.map(c=>[c.id,{selects:0,waits:0,damage:0,heal:0}]))};
  applyStartResources();S.enemy.intent=nextEnemyIntent(true);choiceId=null;showScreen('battleScreen');addLog(`${S.enemy.name}が現れた。`,'note');addLog(`TURN 1`,'turn');renderBattle();
 }
 function applyStartResources(){S.res.gel+=itemCount('jelly');S.res.wild+=itemCount('claw');S.res.mystic+=itemCount('mysticPowder');S.res.nature+=itemCount('sprout');S.res.magic+=itemCount('crystal');S.res.material+=itemCount('cube');S.res.wrath+=itemCount('scale');S.res.immortal+=itemCount('bones');S.res.sea+=itemCount('shell');S.res.faith+=itemCount('miracleFeather')}
@@ -288,26 +311,26 @@ function turnEnd(){
 async function runTurn(){
  if(!choiceId||S.ended||S.animating)return;if(S.status.seal&&S.status.seal.id===choiceId)return;
  const chosen=partyChar(choiceId),hadEvadeBuff=S.enemy.evadeBuffTurns>0,hadDodge100=S.enemy.dodge100Turns>0;
- S.animating=true;S.golemWaiting=false;S.elfGuard=false;S.skipEnemy=false;addLog(`${chosen.name}を「選択」。`,'note');
+ S.animating=true;S.enemyAnimState=null;S.golemWaiting=false;S.elfGuard=false;S.skipEnemy=false;addLog(`${chosen.name}を「選択」。`,'note');
  const waits=S.party.filter(c=>c.id!==choiceId),early=['slime','arachne','fairy','golem','demon','alraune'];
  const orderedWaits=[...waits.filter(c=>early.includes(c.id)),...waits.filter(c=>!early.includes(c.id))];
- const finishEarly=()=>{S.animating=false;S.phase=null;renderBattle()};
+ const finishEarly=()=>{S.animating=false;S.phase=null;S.enemyAnimState=null;renderBattle()};
  for(let i=0;i<orderedWaits.length;i++){
   const c=orderedWaits[i];
-  S.phase={kind:'wait',id:c.id,title:`待機 ${i+1}/${orderedWaits.length}：${c.name}`,effect:c.wait};renderBattle();await sleep(260);
-  if(!S.ended)executeWait(c);renderBattle();await sleep(430);
+  S.phase={kind:'wait',id:c.id,title:`待機 ${i+1}/${orderedWaits.length}：${c.name}`,effect:c.wait};S.enemyAnimState=null;renderBattle();await pacedSleep(260);
+  const hpBefore=S.enemy.hp;if(!S.ended)executeWait(c);S.enemyAnimState=S.enemy.hp<hpBefore?'hit':null;renderBattle();await pacedSleep(430);S.enemyAnimState=null;
   if(S.ended){finishEarly();return}
  }
- S.phase={kind:'select',id:chosen.id,title:`選択：${chosen.name}`,effect:chosen.select};renderBattle();await sleep(280);
- if(!S.ended)executeSelected(chosen);renderBattle();await sleep(500);
+ S.phase={kind:'select',id:chosen.id,title:`選択：${chosen.name}`,effect:chosen.select};S.enemyAnimState=null;renderBattle();await pacedSleep(280);
+ const selectedHpBefore=S.enemy.hp;if(!S.ended)executeSelected(chosen);S.enemyAnimState=S.enemy.hp<selectedHpBefore?'hit':null;renderBattle();await pacedSleep(500);S.enemyAnimState=null;
  if(S.ended){finishEarly();return}
  if(hadEvadeBuff&&S.enemy.evadeBuffTurns>0)S.enemy.evadeBuffTurns--;if(hadDodge100&&S.enemy.dodge100Turns>0)S.enemy.dodge100Turns--;
- const a=S.enemy.intent;S.phase={kind:'enemy',id:null,title:`敵行動：${S.enemy.name}`,effect:a?`${a.name}　${a.desc}`:'行動なし'};renderBattle();await sleep(300);
- if(!S.ended)runEnemy();renderBattle();await sleep(560);
+ const a=S.enemy.intent;S.phase={kind:'enemy',id:null,title:`敵行動：${S.enemy.name}`,effect:a?`${a.name}　${a.desc}`:'行動なし'};S.enemyAnimState='windup';renderBattle();await pacedSleep(300);
+ S.enemyAnimState='strike';if(!S.ended)runEnemy();renderBattle();await pacedSleep(560);S.enemyAnimState=null;
  if(S.ended){finishEarly();return}
- S.phase={kind:'end',id:null,title:'ターン終了',effect:'状態異常・ターン終了効果を処理'};renderBattle();await sleep(180);
- if(!S.ended)turnEnd();renderBattle();await sleep(260);
- S.animating=false;S.phase=null;renderBattle();
+ S.phase={kind:'end',id:null,title:'ターン終了',effect:'状態異常・ターン終了効果を処理'};renderBattle();await pacedSleep(180);
+ if(!S.ended)turnEnd();renderBattle();await pacedSleep(260);
+ S.animating=false;S.phase=null;S.enemyAnimState=null;renderBattle();
 }
 function checkBattleEnd(){if(S.ended)return true;if(S.enemy.hp<=0){S.ended=true;S.won=true;battleVictory();return true}if(S.hp<=0){S.ended=true;S.won=false;R.hp=0;renderBattle();setTimeout(()=>endRun(false,'パーティHPが0になりました。'),800);return true}return false}
 function battleVictory(){R.stats.kills++;if(!S.enemy.boss){const before=S.hp,amount=Math.ceil(S.maxHp*.10);S.hp=Math.min(S.maxHp,S.hp+amount);const healed=S.hp-before;if(healed>0){R.stats.healed+=healed;addLog(`戦闘勝利：最大HPの10%回復 → HP +${healed}`,'good')}else addLog(`戦闘勝利：HPは最大です。`,'note')}R.hp=S.hp;if(itemCount('sash')>0){const id=R.party[Math.floor(Math.random()*R.party.length)];R.atkBonus[id]+=2;addLog(`修練の襷：${charById(id).name}の攻撃力+2`,'good')}renderBattle();if(S.enemy.boss){setTimeout(()=>clearRun(),900);return}const drop=rollItem('drop');setTimeout(()=>openDrop(drop),900)}
@@ -317,7 +340,7 @@ function clearRun(){R.hp=S?.hp??R.hp;endRun(true,'10マス目のポダルゲを�
 function endRun(win,reason){closeChoice();$('resultTitle').textContent=win?'ミニダンジョンクリア！':'周回終了';$('resultText').textContent=reason;$('resultStats').innerHTML=`<div class="item-card"><div class="item-top"><span class="item-name">到達</span><b>${win?'10 / 10':R.floor+' / 10'}</b></div><div class="item-effect">HP ${R.hp} / ${R.maxHp}</div></div><div class="item-card"><div class="item-top"><span class="item-name">戦闘</span><b>${R.stats.battles}回</b></div><div class="item-effect">撃破 ${R.stats.kills}体 / 総ターン ${R.stats.turns}</div></div><div class="item-card"><div class="item-top"><span class="item-name">探索</span><b>ITEM ${R.stats.items}</b></div><div class="item-effect">宝箱 ${R.stats.chests} / 休憩 ${R.stats.rests}</div></div><div class="item-card"><div class="item-top"><span class="item-name">戦闘集計</span><b>${R.stats.damage} dmg</b></div><div class="item-effect">被ダメージ ${R.stats.taken} / 回復 ${R.stats.healed}</div></div>`;$('resultOverlay').classList.add('show')}
 function retire(){if(!R)return;endRun(false,'リタイアしました。')}
 function renderBattle(){
- if(!S)return;$('battleTitle').textContent=S.enemy.boss?'BOSS BATTLE':'戦闘';$('battleSub').textContent=S.animating&&S.phase?`${S.phase.title}　${S.phase.effect}`:(S.enemy.boss?'ポダルゲは行動が毎ターン変化します。':'敵の次の行動は予告されます。');$('turnBadge').textContent=`TURN ${S.turn}`;$('battleScreen').classList.toggle('resolving',!!S.animating);$('battleStage').classList.toggle('enemy-active',S.phase?.kind==='enemy');$('actionSectionTitle').textContent=S.animating&&S.phase?S.phase.title:'行動する魔物娘';const enemyImg=$('enemyImg');enemyImg.src=IMAGES[S.enemy.image];enemyImg.style.setProperty('--portrait-scale',S.enemy.portraitScale??1);enemyImg.style.setProperty('--portrait-offset',`${S.enemy.portraitOffsetY??0}px`);enemyImg.style.setProperty('--portrait-position',S.enemy.portraitPosition??'50% 26%');$('enemyName').textContent=S.enemy.name;$('enemyHpBar').style.width=`${100*S.enemy.hp/S.enemy.maxHp}%`;$('enemyHpText').textContent=`${S.enemy.hp} / ${S.enemy.maxHp}`;
+ if(!S)return;$('battleTitle').textContent=S.enemy.boss?'BOSS BATTLE':'戦闘';$('battleSub').textContent=S.animating&&S.phase?`${S.phase.title}　${S.phase.effect}`:(S.enemy.boss?'ポダルゲは行動が毎ターン変化します。':'敵の次の行動は予告されます。');$('turnBadge').textContent=`TURN ${S.turn}`;renderSpeedButton();$('battleScreen').classList.toggle('resolving',!!S.animating);const stage=$('battleStage');stage.classList.toggle('enemy-windup',S.enemyAnimState==='windup');stage.classList.toggle('enemy-strike',S.enemyAnimState==='strike');stage.classList.toggle('enemy-hit',S.enemyAnimState==='hit');$('actionSectionTitle').textContent=S.animating&&S.phase?S.phase.title:'行動する魔物娘';const enemyImg=$('enemyImg');enemyImg.src=IMAGES[S.enemy.image];enemyImg.style.setProperty('--portrait-scale',S.enemy.portraitScale??1);enemyImg.style.setProperty('--portrait-offset',`${S.enemy.portraitOffsetY??0}px`);enemyImg.style.setProperty('--portrait-position',S.enemy.portraitPosition??'50% 26%');$('enemyName').textContent=S.enemy.name;$('enemyHpBar').style.width=`${100*S.enemy.hp/S.enemy.maxHp}%`;$('enemyHpText').textContent=`${S.enemy.hp} / ${S.enemy.maxHp}`;
  const a=S.enemy.intent;$('intent').innerHTML=a?`次の行動　<b>${a.name}</b><br>${a.desc}`:'戦闘終了';$('enemyChips').innerHTML=enemyChipHTML();$('battleHpBar').style.width=`${100*S.hp/S.maxHp}%`;$('battleHpText').textContent=`HP ${S.hp} / ${S.maxHp}`;$('partyChips').innerHTML=partyChipHTML();
  $('battleCards').innerHTML=S.party.map(c=>{const chosen=choiceId===c.id,sealed=S.status.seal&&S.status.seal.id===c.id,active=S.phase?.id===c.id,pk=active?`phase-active phase-${S.phase.kind}`:'';const mode=sealed?'封印':active?(S.phase.kind==='wait'?'待機中':'行動中'):chosen?'選択':'待機';return `<button class="battle-card ${chosen?'chosen':''} ${sealed?'sealed':''} ${pk}" data-id="${c.id}" ${sealed?'disabled':''}><img src="${IMAGES[c.id]}"><span class="mode">${mode}</span><div class="bc-head"><span class="bc-name">${c.name}</span><span class="bc-atk">ATK ${c.currentAtk}</span></div></button>`}).join('');
  if(!S.animating)document.querySelectorAll('.battle-card:not([disabled])').forEach(b=>b.onclick=()=>{choiceId=b.dataset.id;renderBattle()});
@@ -327,6 +350,6 @@ function renderBattle(){
 
 function partyChipHTML(){const a=[];const labels={gel:'ジェル',wild:'野生',mystic:'神秘',nature:'自然',magic:'魔力',material:'マテリアル',wrath:'逆鱗',immortal:'不滅',sea:'海',faith:'信仰',lucky:'ラッキー'};for(const[k,v]of Object.entries(S.res))if(v>0)a.push(`<span class="chip good">${labels[k]} ${v}</span>`);if(S.status.poisonTurns)a.push(`<span class="chip bad">毒 ${S.status.poisonTurns}</span>`);for(const k of ['charm','curse','shock'])if(S.status[k])a.push(`<span class="chip bad">${statusName(k)} ${S.status[k]}%</span>`);if(S.status.seal)a.push(`<span class="chip bad">封印 ${charById(S.status.seal.id).name} ${S.status.seal.turns}</span>`);const cr=partyCrit(),ev=partyEvade(),rs=statusResist();if(cr)a.push(`<span class="chip">会心 ${cr}%</span>`);if(ev)a.push(`<span class="chip">回避 ${ev}%</span>`);if(rs)a.push(`<span class="chip">耐性 ${rs}%</span>`);return a.join('')||'<span class="chip">効果なし</span>'}
 function enemyChipHTML(){const a=[];if(S.enemy.flatDamage)a.push(`<span class="chip bad">与ダメ+${S.enemy.flatDamage}</span>`);if(S.enemy.crit)a.push(`<span class="chip bad">会心 ${S.enemy.crit}%</span>`);const ev=enemyEvade();if(ev)a.push(`<span class="chip bad">回避 ${ev}%</span>`);if(S.enemy.status.poisonTurns)a.push(`<span class="chip good">毒 ${S.enemy.status.poisonTurns}</span>`);for(const k of ['charm','curse','shock'])if(S.enemy.status[k])a.push(`<span class="chip good">${statusName(k)} ${S.enemy.status[k]}%</span>`);return a.join('')}
-$('startBtn').onclick=startRun;$('turnBtn').onclick=runTurn;$('retireMap').onclick=retire;$('retireBattle').onclick=retire;$('restartBtn').onclick=()=>{location.reload()};renderSelection();
+$('startBtn').onclick=startRun;$('turnBtn').onclick=runTurn;$('retireMap').onclick=retire;$('retireBattle').onclick=retire;$('speedBtn').onclick=cycleSpeed;$('restartBtn').onclick=()=>{location.reload()};renderSpeedButton();renderSelection();
 </script>
 </body></html>
