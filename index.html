@@ -162,6 +162,30 @@ body{min-height:100dvh}button{font:inherit;color:inherit}.screen{display:none;mi
 .reward-actions{display:flex;gap:8px}.reward-actions button{width:auto;flex:1}.reward-actions .secondary{flex:0 0 38%;background:#221a2a;border:1px solid #4d3d59;color:#eadff0}
 @media(max-width:360px){.card-detail-hero{grid-template-columns:96px 1fr}.card-detail-art{height:112px}.home-char-actions{gap:4px}.home-detail-btn,.home-fav-btn{padding:7px 8px}}
 @media(max-height:700px){.reward-art{height:235px}.reward-card{max-height:96dvh}.upgrade-card img{height:94px}}
+
+/* v1.2e result polish */
+.result-screen-v2{padding-top:18px}
+.result-screen-v2 .result-hero{position:relative;overflow:hidden;padding:25px 18px 22px;border-color:#705582;background:radial-gradient(circle at 50% -12%,#684477 0,#3a2547 31%,#21172a 62%,#151019 100%);box-shadow:0 18px 46px #0008,0 0 34px #aa6fca14}
+.result-screen-v2 .result-hero:before{content:"";position:absolute;left:14%;right:14%;top:-52px;height:118px;border-radius:50%;background:radial-gradient(ellipse,#d69ae72e,transparent 68%);pointer-events:none}
+.result-screen-v2 .result-kicker{position:relative;font-size:9px;letter-spacing:.26em;color:#d8c2e4}
+.result-screen-v2 .result-title{position:relative;font-size:31px;margin-top:7px;letter-spacing:.01em}
+.result-screen-v2 .result-floor{position:relative;font-size:12px;margin-top:7px;color:#e3d7e8}
+.result-screen-v2 .result-mana{position:relative;display:flex;justify-content:center;width:min(250px,78%);margin:18px auto 0;padding:11px 17px;border-color:#806744;background:linear-gradient(145deg,#2d2417,#1b1712);box-shadow:inset 0 0 24px #f0bc4b08,0 8px 22px #0004}
+.result-screen-v2 .result-mana span{font-size:9px}.result-screen-v2 .result-mana strong{font-size:25px}
+.result-party-wrap{margin-top:12px;padding:11px;border:1px solid #4a3b56;border-radius:19px;background:linear-gradient(145deg,#211827,#15111b);box-shadow:0 9px 25px #0003}
+.result-section-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:0 2px 9px}.result-section-head b{font-size:11px}.result-section-head span{font-size:7px;letter-spacing:.12em;color:#81738c}
+.result-party{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.result-party-card{min-width:0;overflow:hidden;border:1px solid #3a2f44;border-radius:14px;background:#100d15;text-align:center}
+.result-party-art{height:98px;padding:4px 3px 0;background:radial-gradient(circle at 50% 38%,#44304f,#211827 55%,#130f18 88%)}
+.result-party-art img{width:100%;height:100%;object-fit:contain;object-position:50% 50%;filter:drop-shadow(0 8px 9px #0009)}
+.result-party-info{padding:7px 4px 8px;border-top:1px solid #2d2535}.result-party-name{font-size:9.5px;font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.result-party-meta{font-size:7.5px;color:#a99ab4;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.result-party-meta b{color:#d9c1e9}
+.result-summary-v2{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+.result-summary-v2 .result-box{padding:11px 7px;border-radius:15px;background:linear-gradient(145deg,#19131f,#110e16)}.result-summary-v2 .result-box b{font-size:20px}.result-summary-v2 .result-box span{font-size:8px;letter-spacing:.04em}
+.result-screen-v2 .result-notice{margin-top:10px;padding:11px 12px;border-radius:15px;line-height:1.55}.result-screen-v2 .result-notice b{display:block;font-size:10px;color:#f1e5f5;margin-bottom:2px}.result-screen-v2 .result-notice span{font-size:8.5px;color:#bcaec5}.result-screen-v2 .result-notice.good b{color:#d8f5e3}.result-screen-v2 .result-notice.good span{color:#add4bd}
+.result-screen-v2 .result-details{margin-top:9px;border-radius:14px}.result-screen-v2 .result-details summary{padding:11px 1px}.result-screen-v2 .result-detail-grid div{padding:9px;font-size:8.5px}
+.result-actions{margin-top:10px}.result-actions button{min-height:51px}.result-actions .secondary{padding-left:15px;padding-right:15px}
+@media(max-height:720px){.result-screen-v2 .result-hero{padding:18px 14px 17px}.result-screen-v2 .result-title{font-size:27px}.result-screen-v2 .result-mana{margin-top:12px}.result-party-art{height:78px}.result-party-wrap{padding:9px}.result-summary-v2 .result-box{padding:8px 6px}.result-summary-v2 .result-box b{font-size:17px}}
+
 </style>
 </head>
 <body>
@@ -225,12 +249,29 @@ body{min-height:100dvh}button{font:inherit;color:inherit}.screen{display:none;mi
   </div>
 </section>
 
-<section id="resultScreen" class="screen meta-screen">
-  <div class="result-hero"><div id="resultKicker" class="result-kicker">EXPEDITION RESULT</div><div id="fullResultTitle" class="result-title">探索終了</div><div id="fullResultFloor" class="result-floor"></div><div class="result-mana"><span>獲得魔素</span><strong id="resultMana">+0</strong></div></div>
-  <div class="result-summary"><div class="result-box"><b id="resultKills">0</b><span>撃破</span></div><div class="result-box"><b id="resultBattles">0</b><span>戦闘</span></div><div class="result-box"><b id="resultItems">0</b><span>ITEM</span></div></div>
+<section id="resultScreen" class="screen meta-screen result-screen-v2">
+  <div class="result-hero">
+    <div id="resultKicker" class="result-kicker">EXPEDITION RESULT</div>
+    <div id="fullResultTitle" class="result-title">探索終了</div>
+    <div id="fullResultFloor" class="result-floor"></div>
+    <div class="result-mana"><span>獲得魔素</span><strong id="resultMana">+0</strong></div>
+  </div>
+
+  <div class="result-party-wrap">
+    <div class="result-section-head"><b>今回のパーティ</b><span>EXPEDITION PARTY</span></div>
+    <div id="resultParty" class="result-party"></div>
+  </div>
+
+  <div class="result-summary result-summary-v2">
+    <div class="result-box"><b id="resultKills">0</b><span>撃破</span></div>
+    <div class="result-box"><b id="resultBattles">0</b><span>戦闘</span></div>
+    <div class="result-box"><b id="resultItems">0</b><span>ITEM</span></div>
+    <div class="result-box"><b id="resultTurns">0</b><span>ターン</span></div>
+  </div>
+
   <div id="resultNotice" class="result-notice"></div>
-  <details class="result-details"><summary>詳細戦績</summary><div id="fullResultDetails" class="result-detail-grid"></div></details>
-  <div class="meta-actions"><button id="resultMissionBtn" class="secondary" style="display:none">ミッション</button><button id="resultHomeBtn" class="primary">ホームへ</button></div>
+  <details class="result-details"><summary>詳細戦績を見る</summary><div id="fullResultDetails" class="result-detail-grid"></div></details>
+  <div class="meta-actions result-actions"><button id="resultMissionBtn" class="secondary" style="display:none">ミッション</button><button id="resultHomeBtn" class="primary">ホームへ</button></div>
 </section>
 
 <section id="selectScreen" class="screen">
@@ -694,7 +735,7 @@ turnEnd=function(){if(S.ended)return;if(S.status.poisonTurns>0){directPartyLoss(
 battleVictory=function(){R.stats.kills++;const reward=S.enemy.boss?50:10;R.pendingMana=(R.pendingMana||0)+reward;addLog(`魔素 +${reward}（帰還時に確定）`,'good');if(S.enemy.id==='rabbit')missionAdd('rabbitKills',1);if(S.enemy.id==='goblin'&&S.turn<=8)missionAdd('goblinFastKills',1);if(S.party.some(c=>CARD_META[c.id]?.growth==='attack'))missionAdd('attackTypeKills',1);if(S.party.some(c=>CARD_META[c.id]?.growth==='defense'))missionAdd('defenseTypeKills',1);if(!S.enemy.boss){const before=S.hp,amount=Math.ceil(S.maxHp*.10);S.hp=Math.min(S.maxHp,S.hp+amount);const healed=S.hp-before;if(healed>0){R.stats.healed+=healed;addLog(`戦闘勝利：最大HPの10%回復 → HP +${healed}`,'good');fxPartyHp(`+${healed}`,'heal')}else addLog('戦闘勝利：HPは最大です。','note')}R.hp=S.hp;if(itemCount('sash')>0){const id=R.party[Math.floor(Math.random()*R.party.length)];R.atkBonus[id]+=2;addLog(`修練の襷：${charById(id).name}の攻撃力+2`,'good')}renderBattle();if(S.enemy.boss){setTimeout(()=>clearRun(),900);return}const drop=rollItem('drop');setTimeout(()=>openDrop(drop),900)}
 
 function commitRunMeta(win){if(!R||R.metaCommitted)return;R.metaCommitted=true;META.mana+=(R.pendingMana||0);META.deepest=Math.max(META.deepest||1,win?10:Math.min(10,R.floor||1));if(win)META.cleared10=true;META.party=[...R.party];saveMeta()}
-endRun=function(win,reason){closeChoice();if(!R)return;commitRunMeta(win);const retired=String(reason).includes('リタイア');$('resultKicker').textContent=win?'FLOOR CLEARED':retired?'RETURN':'EXPEDITION RESULT';$('fullResultTitle').textContent=win?'10F 踏破！':retired?'帰還':'探索終了';$('fullResultFloor').textContent=`到達 ${win?10:R.floor}F　HP ${R.hp} / ${R.maxHp}`;$('resultMana').textContent=`+${formatNum(R.pendingMana||0)}`;$('resultKills').textContent=R.stats.kills;$('resultBattles').textContent=R.stats.battles;$('resultItems').textContent=R.stats.items;$('fullResultDetails').innerHTML=`<div>総ターン　${R.stats.turns}</div><div>与ダメージ　${formatNum(R.stats.damage)}</div><div>被ダメージ　${formatNum(R.stats.taken)}</div><div>回復量　${formatNum(R.stats.healed)}</div><div>宝箱　${R.stats.chests}</div><div>休憩　${R.stats.rests}</div>`;const claims=claimableMissions().length,notice=$('resultNotice');if(claims>0){notice.className='result-notice good';notice.textContent=`ミッション達成！ 受け取り可能なカードが ${claims} 枚あります。`; $('resultMissionBtn').style.display='block'}else{notice.className='result-notice';notice.textContent=win?'浅層を踏破しました。獲得した魔素でカードを強化できます。':'獲得した魔素は持ち帰りました。強化して再挑戦できます。';$('resultMissionBtn').style.display='none'}renderHome();showScreen('resultScreen')}
+endRun=function(win,reason){closeChoice();if(!R)return;commitRunMeta(win);const retired=String(reason).includes('リタイア');$('resultKicker').textContent=win?'FLOOR CLEARED':retired?'RETURN':'EXPEDITION RESULT';$('fullResultTitle').textContent=win?'10F 踏破！':retired?'帰還':'探索終了';$('fullResultFloor').textContent=`到達 ${win?10:R.floor}F　HP ${R.hp} / ${R.maxHp}`;$('resultMana').textContent=`+${formatNum(R.pendingMana||0)}`;$('resultKills').textContent=R.stats.kills;$('resultBattles').textContent=R.stats.battles;$('resultItems').textContent=R.stats.items;$('resultTurns').textContent=R.stats.turns;$('resultParty').innerHTML=R.party.map(id=>{const c=charById(id),tier=getTier(id),growth=getGrowth(id);return `<div class="result-party-card"><div class="result-party-art"><img src="${IMAGES[id]}" alt="${escHtml(c.name)}"></div><div class="result-party-info"><div class="result-party-name">${escHtml(c.name)}</div><div class="result-party-meta"><b>T${tier}</b> ・ ${growth.label}</div></div></div>`}).join('');const elapsed=Math.max(0,Math.floor((Date.now()-(R.started||Date.now()))/1000)),mins=Math.floor(elapsed/60),secs=elapsed%60;$('fullResultDetails').innerHTML=`<div>与ダメージ　${formatNum(R.stats.damage)}</div><div>被ダメージ　${formatNum(R.stats.taken)}</div><div>回復量　${formatNum(R.stats.healed)}</div><div>宝箱　${R.stats.chests}</div><div>休憩　${R.stats.rests}</div><div>探索時間　${mins}:${String(secs).padStart(2,'0')}</div>`;const claims=claimableMissions().length,notice=$('resultNotice');if(claims>0){notice.className='result-notice good';notice.innerHTML=`<b>受け取り可能な仲間が ${claims}体います</b><span>ミッション画面から新しいカードを受け取れます。</span>`;$('resultMissionBtn').style.display='block'}else{notice.className='result-notice';notice.innerHTML=win?'<b>探索完了</b><span>獲得した魔素でカードを強化し、次の探索に備えられます。</span>':'<b>魔素を持ち帰りました</b><span>パーティを強化して、もう一度挑戦できます。</span>';$('resultMissionBtn').style.display='none'}renderHome();showScreen('resultScreen')}
 retire=function(){if(!R)return;if(S)R.hp=S.hp;endRun(false,'リタイアしました。')}
 
 // Wire meta UI. Existing battle UI handlers are preserved/rebound where necessary.
