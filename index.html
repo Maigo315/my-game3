@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
 <meta name="theme-color" content="#120f19" />
-<title>魔物娘ローグライト v1.2h Dynamic Home</title>
+<title>魔物娘ローグライト v1.2i Home Refine</title>
 <style>
 :root{
   --bg:#100d16;--panel:#1a1622;--panel2:#231d2e;--line:#3a3048;--text:#f8f2ff;--muted:#b9acc7;
@@ -99,22 +99,22 @@ body{min-height:100dvh}button{font:inherit;color:inherit}.screen{display:none;mi
 <style>
 /* v1.1 meta loop */
 .meta-screen{background:radial-gradient(circle at 50% -15%,#342145 0,#17121f 37%,var(--bg) 76%)}
-.meta-top{display:flex;justify-content:space-between;gap:8px;align-items:center;margin:2px 0 12px}
-.meta-title{font-size:21px;font-weight:950;letter-spacing:.01em}.meta-caption{font-size:9px;color:var(--muted);margin-top:3px}
-.meta-currencies{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.meta-pill{display:inline-flex;align-items:center;gap:5px;padding:6px 9px;border:1px solid var(--line);border-radius:999px;background:#17131f;font-size:9px;font-weight:850;white-space:nowrap}.meta-pill strong{color:var(--gold);font-size:11px}
-.home-stage{position:relative;min-height:620px;margin-top:8px;border-radius:30px;overflow:hidden;background:radial-gradient(circle at 50% 22%,#59356a 0,#311f3c 34%,#1c1525 62%,#120f18 100%);box-shadow:0 22px 54px #0008,inset 0 1px #ffffff10}
-.home-stage:before{content:"";position:absolute;left:-10%;right:-10%;top:-60px;height:180px;border-radius:50%;background:radial-gradient(ellipse,#c98ae632 0,#8d5aa51d 45%,transparent 73%);pointer-events:none}
-.home-stage:after{content:"";position:absolute;left:6%;right:6%;bottom:108px;height:120px;border-radius:50%;background:radial-gradient(ellipse,#c381da24 0,#5c3a6a18 42%,transparent 72%);filter:blur(3px);pointer-events:none}
-.home-stage img{position:absolute;left:4%;right:4%;top:64px;bottom:126px;width:92%;height:calc(100% - 190px);object-fit:contain;object-position:50% 50%;filter:drop-shadow(0 22px 20px #000b);pointer-events:none}
-.home-float-btn{position:absolute;display:block;width:128px;min-height:92px;text-align:left;border:1px solid #5c486f;border-radius:22px;background:linear-gradient(145deg,#241b2dcf,#16121de3);padding:12px 12px 11px;box-shadow:0 12px 26px #0005;backdrop-filter:blur(8px)}
-.home-float-btn b{display:block;font-size:15px;line-height:1.05}.home-float-btn span{display:block;color:var(--muted);font-size:8px;line-height:1.4;margin-top:5px}.home-float-btn .menu-icon{font-size:20px;margin-bottom:4px}.home-float-btn.alert{border-color:#ec92b6;background:linear-gradient(145deg,#33202f,#18121f);box-shadow:0 0 0 2px #ff92bd2b,0 12px 26px #0005,0 0 22px #ff8fbc14}
-.home-formation-btn{left:-2px;bottom:180px}.home-missions-btn{right:-2px;bottom:182px}.home-upgrade-btn{right:18px;top:98px}
-.home-bottom-panel{position:absolute;left:10px;right:10px;bottom:12px;padding:12px 12px 14px;border:1px solid #ffffff1a;border-radius:20px;background:linear-gradient(180deg,#130f18d9,#0f0b14f0);backdrop-filter:blur(10px);box-shadow:0 12px 26px #0005}
-.home-char-line{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-bottom:10px}.home-char-name{font-size:19px;font-weight:1000;line-height:1.05}.home-char-sub{font-size:9px;color:#c8b8d4;margin-top:3px;line-height:1.5}.home-char-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.meta-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin:2px 0 10px}.meta-top>div:first-child{min-width:0;flex:1}
+.meta-title{font-size:21px;font-weight:950;letter-spacing:.01em;line-height:1.08;word-break:keep-all;overflow-wrap:anywhere}.meta-caption{display:none}
+.meta-currencies{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;align-items:center}.meta-pill{display:inline-flex;align-items:center;gap:5px;padding:6px 9px;border:1px solid var(--line);border-radius:999px;background:#17131f;font-size:9px;font-weight:850;white-space:nowrap}.meta-pill strong{color:var(--gold);font-size:11px}
+.home-stage{position:relative;min-height:620px;margin-top:8px;border-radius:30px;overflow:hidden;background:radial-gradient(circle at 50% 18%,#66407a 0,#3a2647 30%,#20182a 58%,#110f17 100%);box-shadow:0 22px 54px #0008,inset 0 1px #ffffff10}
+.home-stage:before{content:"";position:absolute;left:-10%;right:-10%;top:-44px;height:160px;border-radius:50%;background:radial-gradient(ellipse,#c88ce428 0,#8955a319 45%,transparent 74%);pointer-events:none}
+.home-stage:after{content:"";position:absolute;left:8%;right:8%;bottom:168px;height:140px;border-radius:50%;background:radial-gradient(ellipse,#c381da22 0,#68417818 42%,transparent 72%);filter:blur(5px);pointer-events:none}
+.home-stage img{position:absolute;left:8%;right:8%;top:54px;bottom:166px;width:84%;height:calc(100% - 220px);object-fit:contain;object-position:50% 50%;filter:drop-shadow(0 24px 22px #000c);pointer-events:none}
+.home-grid{position:absolute;left:18px;right:18px;bottom:122px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;align-items:stretch}
+.home-grid-btn{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px;min-height:82px;text-align:center;border:1px solid #5b496d;border-radius:20px;background:linear-gradient(145deg,#241b2dd9,#17131de8);backdrop-filter:blur(8px);box-shadow:0 12px 26px #0005;padding:10px 8px}
+.home-grid-btn .menu-icon{font-size:18px;line-height:1}.home-grid-btn b{display:block;font-size:15px;line-height:1.05}.home-grid-btn.alert{border-color:#ec92b6;background:linear-gradient(145deg,#32202f,#18121f);box-shadow:0 0 0 2px #ff92bd24,0 12px 26px #0005,0 0 22px #ff8fbc14}
+.home-bottom-panel{position:absolute;left:12px;right:12px;bottom:12px;padding:12px 12px 14px;border:1px solid #ffffff1a;border-radius:20px;background:linear-gradient(180deg,#130f18d9,#0f0b14f0);backdrop-filter:blur(10px);box-shadow:0 12px 26px #0005}
+.home-char-line{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}.home-char-name{font-size:23px;font-weight:1000;line-height:1.05}.home-char-sub{display:none}.home-char-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .home-detail-btn,.home-fav-btn{border:1px solid #655276;border-radius:12px;background:#241a2c;padding:8px 10px;font-size:9px;font-weight:900;white-space:nowrap}
 .home-main-btn{width:100%;min-height:64px;border:0;border-radius:18px;background:linear-gradient(135deg,var(--violet),#d66bc6 52%,#f2a0bf);color:#170d21;box-shadow:0 12px 26px #0006;font-weight:1000;padding:10px 16px;text-align:center}
-.home-main-btn .main-label{display:block;font-size:20px;letter-spacing:.04em}.home-main-btn .main-sub{display:block;font-size:8px;color:#34203e;opacity:.92;margin-top:4px;letter-spacing:.02em}
-.home-stage-note{margin:10px 2px 0;font-size:8.5px;color:var(--muted);line-height:1.55;text-align:center}
+.home-main-btn .main-label{display:block;font-size:21px;letter-spacing:.04em}.home-main-btn .main-sub{display:none}
+.home-stage-note{display:none}
 .meta-back{border:1px solid var(--line);border-radius:999px;background:#17131f;color:#d9cbe3;padding:6px 10px;font-size:9px;font-weight:850}
 .stage-card{width:100%;text-align:left;border:1px solid #654c70;border-radius:19px;background:linear-gradient(135deg,#291d34,#17131f);padding:15px;margin-bottom:9px;box-shadow:0 9px 26px #0004}.stage-card.locked{opacity:.48;filter:saturate(.5)}.stage-topline{display:flex;justify-content:space-between;align-items:center;gap:8px}.stage-floor{font-size:19px;font-weight:950}.stage-status{font-size:8px;padding:4px 7px;border-radius:999px;border:1px solid #574564;color:#cdbdde}.stage-desc{font-size:9px;color:var(--muted);line-height:1.55;margin-top:8px}.stage-reward{margin-top:9px;font-size:9px;color:#e9d9ef}.stage-reward b{color:var(--gold)}
 .confirm-party{display:grid;gap:8px}.confirm-unit{display:grid;grid-template-columns:72px 1fr auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:16px;background:#18131f;padding:8px}.confirm-unit img{width:72px;height:68px;border-radius:12px;object-fit:cover;object-position:50% 24%}.confirm-unit b{font-size:13px}.confirm-unit p{font-size:8.5px;color:var(--muted);line-height:1.45;margin:4px 0 0}.tier-badge{display:inline-flex;padding:4px 7px;border-radius:999px;background:#2c2037;border:1px solid #5b4770;color:#e7d6f3;font-size:8px;font-weight:900;white-space:nowrap}
@@ -124,12 +124,12 @@ body{min-height:100dvh}button{font:inherit;color:inherit}.screen{display:none;mi
 .result-hero{border:1px solid #624d6f;border-radius:24px;background:radial-gradient(circle at 50% 0,#493054,#241a2d 47%,#15111b 90%);padding:22px 15px;text-align:center;box-shadow:0 15px 40px #0006}.result-kicker{font-size:9px;letter-spacing:.18em;color:#c2afce;font-weight:900}.result-title{font-size:27px;font-weight:1000;margin-top:4px}.result-floor{font-size:13px;color:#e4d5ec;margin-top:4px}.result-mana{margin:17px auto 0;display:inline-flex;align-items:baseline;gap:7px;padding:9px 15px;border-radius:999px;border:1px solid #705b43;background:#241d15}.result-mana span{font-size:9px;color:#d8c5a7}.result-mana strong{font-size:22px;color:var(--gold)}.result-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:11px}.result-box{border:1px solid var(--line);border-radius:14px;background:#17131f;padding:10px 6px;text-align:center}.result-box b{display:block;font-size:16px}.result-box span{font-size:8px;color:var(--muted)}.result-details{margin-top:10px;border:1px solid var(--line);border-radius:14px;background:#17131f;padding:0 10px}.result-details summary{padding:11px 0;font-size:9px;font-weight:900;color:#d8c9e2}.result-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding-bottom:10px}.result-detail-grid div{font-size:8.5px;padding:8px;background:#100d15;border-radius:9px;color:#b8a9c4}.result-notice{margin-top:10px;padding:10px 11px;border:1px solid #5b4559;border-radius:13px;background:#211721;font-size:9px;color:#e3ceda;line-height:1.5}.result-notice.good{border-color:#3f6651;background:#14221b;color:#c9f0d8}
 .small-note{font-size:8.5px;color:var(--muted);line-height:1.55;margin:7px 2px 12px}.ghost-btn{border:0;background:transparent;color:#877a91;font-size:8px;padding:8px}
 #selectScreen .pick-tier{font-size:8px;color:var(--gold);font-weight:900;margin-left:4px}
-@media(max-height:760px){.home-stage{min-height:560px}.home-stage img{top:56px;bottom:118px;height:calc(100% - 174px)}.home-float-btn{width:118px;min-height:84px;padding:10px 10px 9px}.home-formation-btn{bottom:164px}.home-missions-btn{bottom:166px}.home-upgrade-btn{top:86px}.home-main-btn{min-height:59px}.home-main-btn .main-label{font-size:18px}}
+@media(max-height:760px){.home-stage{min-height:560px}.home-stage img{top:44px;bottom:154px;height:calc(100% - 198px)}.home-grid{bottom:114px;gap:9px}.home-grid-btn{min-height:74px}.home-main-btn{min-height:58px}.home-main-btn .main-label{font-size:18px}.home-char-name{font-size:21px}}
 </style>
 
 <style>
 /* v1.2 Growth & Reward presentation */
-.home-float-btn.alert{border-color:#ec92b6;background:linear-gradient(145deg,#33202f,#18121f);box-shadow:0 0 0 2px #ff92bd2b,0 12px 26px #0005,0 0 22px #ff8fbc14}
+.home-grid-btn.alert{border-color:#ec92b6;background:linear-gradient(145deg,#32202f,#18121f);box-shadow:0 0 0 2px #ff92bd24,0 12px 26px #0005,0 0 22px #ff8fbc14}
 
 .upgrade-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding-bottom:12px}
 .upgrade-card{min-height:0}.upgrade-card img{height:116px}.upgrade-card.selected{border-color:var(--line);box-shadow:none}
@@ -200,9 +200,11 @@ body{min-height:100dvh}button{font:inherit;color:inherit}.screen{display:none;mi
   <div class="meta-top"><div><div class="meta-title">魔物娘ローグライト</div><div class="meta-caption">迷宮を巡り、仲間を集め、深層を目指す。</div></div><div class="meta-currencies"><span class="meta-pill">魔素 <strong id="homeMana">0</strong></span><span class="meta-pill">最深 <strong id="homeDeepest">1F</strong></span><button id="homeDebug" class="debug-entry">DEBUG</button></div></div>
   <div class="home-stage">
     <img id="homeCharImg" alt="ホーム魔物娘">
-    <button id="homeUpgrade" class="home-float-btn home-upgrade-btn"><div class="menu-icon">✨</div><b>強化</b><span>魔素を使ってTierを上げる</span></button>
-    <button id="homeFormation" class="home-float-btn home-formation-btn"><div class="menu-icon">⚔️</div><b>編成</b><span>探索に連れていく3体を選ぶ</span></button>
-    <button id="homeMissions" class="home-float-btn home-missions-btn"><div class="menu-icon">📜</div><b>ミッション</b><span>条件達成で新しい仲間を迎える</span></button>
+    <div class="home-grid">
+      <button id="homeFormation" class="home-grid-btn"><div class="menu-icon">⚔️</div><b>編成</b></button>
+      <button id="homeMissions" class="home-grid-btn"><div class="menu-icon">📜</div><b>ミッション</b></button>
+      <button id="homeUpgrade" class="home-grid-btn"><div class="menu-icon">✨</div><b>強化</b></button>
+    </div>
     <div class="home-bottom-panel">
       <div class="home-char-line">
         <div><div id="homeCharName" class="home-char-name"></div><div id="homeCharSub" class="home-char-sub"></div></div>
