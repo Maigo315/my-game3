@@ -122,7 +122,7 @@ body{min-height:100dvh}button{font:inherit;color:inherit}.screen{display:none;mi
 
 <style>
 /* v1.2 Growth & Reward presentation */
-.home-menu-btn.alert{border-color:var(--line);box-shadow:0 8px 22px #0003;background:linear-gradient(145deg,#291d31,#17121e)}
+.home-menu-btn.alert{border-color:#d886a4;box-shadow:0 0 0 2px #ff92bd22,0 8px 22px #0003;background:linear-gradient(145deg,#2b1c30,#18121f)}
 .alert-mark{position:absolute;right:10px;top:9px;width:25px;height:25px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#ff4f7f;color:#fff;border:2px solid #ffd7e3;font-size:15px;font-weight:1000;line-height:1;box-shadow:0 4px 14px #0008,0 0 0 3px #ff4f7f22;margin:0;pointer-events:none;z-index:2}
 
 .upgrade-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding-bottom:12px}
@@ -567,7 +567,34 @@ const SKILL_NAMES={
  slime:{select:'ジェルアタック',wait:'再生スライム'},bess:{select:'ジェルパンチ',wait:'肉食スライム'},arachne:{select:'フォシルスレッド',wait:'時の糸繰り'},harpy:{select:'フェザーレイン',wait:'フェザーショット'},rabbit:{select:'うさぎウィンク',wait:'ラッキーバニー'},fairy:{select:'ヒール',wait:'小さな妖精'},golem:{select:'ゴーレムパンチ',wait:'岩の魔人'},demon:{select:'サンダー',wait:'魔術師悪魔'},alraune:{select:'アルライビー',wait:'花の妖魔'},elf:{select:'ディフェンシブアロー',wait:'神秘の一族'},goblin:{select:'ゴブリンクラッシュ',wait:'気合チャージ'}
 };
 function escHtml(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
-function diffPair(before,after){before=String(before??'');after=String(after??'');let p=0;while(p<before.length&&p<after.length&&before[p]===after[p])p++;let a=before.length-1,b=after.length-1;while(a>=p&&b>=p&&before[a]===after[b]){a--;b--}const pre=escHtml(before.slice(0,p)),oldMid=escHtml(before.slice(p,a+1)),newMid=escHtml(after.slice(p,b+1)),suf=escHtml(before.slice(a+1));return {before:pre+(oldMid?`<span class="diff-old">${oldMid}</span>`:'')+suf,after:pre+(newMid?`<span class="diff-changed">${newMid}</span>`:'')+suf}}
+function diffPair(before,after){
+  before=String(before??'');after=String(after??'');
+  let p=0;
+  while(p<before.length&&p<after.length&&before[p]===after[p])p++;
+  let a=before.length-1,b=after.length-1;
+  while(a>=p&&b>=p&&before[a]===after[b]){a--;b--}
+
+  // 数値の一部だけが変わった場合でも、数値全体を差分として見せる。
+  // 例: 30%→40% は「3→4」ではなく「30→40」、0.5→0.7 は数値全体を強調。
+  const numChar=c=>c!==undefined&&/[0-9.]/.test(c);
+  const touchesNumber = numChar(before[p]) || numChar(after[p]) || numChar(before[p-1]) || numChar(after[p-1]) || numChar(before[a+1]) || numChar(after[b+1]);
+  if(touchesNumber){
+    while(p>0 && (numChar(before[p-1]) || numChar(after[p-1]))) p--;
+    if(p>0 && before[p-1]==='-' && after[p-1]==='-') p--;
+    while(a+1<before.length && numChar(before[a+1])) a++;
+    while(b+1<after.length && numChar(after[b+1])) b++;
+  }
+
+  const pre=escHtml(before.slice(0,p));
+  const oldMid=escHtml(before.slice(p,a+1));
+  const newMid=escHtml(after.slice(p,b+1));
+  const oldSuf=escHtml(before.slice(a+1));
+  const newSuf=escHtml(after.slice(b+1));
+  return {
+    before:pre+(oldMid?`<span class="diff-old">${oldMid}</span>`:'')+oldSuf,
+    after:pre+(newMid?`<span class="diff-changed">${newMid}</span>`:'')+newSuf
+  }
+}
 function tierChangeInfo(id,tier){if(tier>=15)return null;const next=tier+1,m=CARD_META[id],names=SKILL_NAMES[id]||{};if(next===5){const d=diffPair(getCardText(id,tier).select,getCardText(id,next).select);return {kind:'選択強化',name:names.select||'選択',before:d.before,after:d.after}}if(next===10){const d=diffPair(getCardText(id,tier).wait,getCardText(id,next).wait);return {kind:'待機強化',name:names.wait||'待機',before:d.before,after:d.after}}if(next===15)return {kind:'アビリティ2解放',name:'アビリティ2',unlock:escHtml(m.ability2)};return null}
 function rewardSkill(label,name,text){return `<div class="reward-skill"><b>${label}${name?`：${escHtml(name)}`:''}</b><p>${escHtml(text)}</p></div>`}
 function showCardAcquire(id){lastAcquiredId=id;const c=charById(id),st=getCardStats(id,1),tx=getCardText(id,1),names=SKILL_NAMES[id]||{};$('acquireImg').src=IMAGES[id];$('acquireImg').alt=c.name;$('acquireBody').innerHTML=`<div class="reward-name">${escHtml(c.name)}</div><div class="reward-type">${escHtml(getGrowth(id).label)}　Tier 1</div><div class="reward-stats"><div class="reward-stat">HP<b>${st.hp}</b></div><div class="reward-stat">攻撃力<b>${st.atk}</b></div></div><div class="reward-skills">${rewardSkill('選択',names.select,tx.select)}${rewardSkill('待機',names.wait,tx.wait)}${rewardSkill('アビリティ','',c.ability)}</div>`;const o=$('cardAcquireOverlay');o.classList.add('show');o.setAttribute('aria-hidden','false')}
@@ -593,7 +620,7 @@ function claimableMissions(){return MISSIONS.filter(m=>!META.owned.includes(m.id
 function missionAdd(key,n=1){if(!n)return;META.progress[key]=(META.progress[key]||0)+n;saveMeta();if(!R)renderHome()}
 function gainRes(k,n,label){if(!n)return;S.res[k]+=n;if(k==='gel')missionAdd('gelGained',n);if(label){addLog(`${label}：${resName(k)}+${n} → ${S.res[k]}`,'good');fxPartyRes(`${resName(k)} +${n}`,'resup')}}
 
-function renderHome(){if(!$('homeScreen'))return;const id=META.owned.includes(META.favorite)?META.favorite:(META.owned[0]||'slime'),c=charById(id),st=getCardStats(id);META.favorite=id;$('homeMana').textContent=formatNum(META.mana);$('homeDeepest').textContent=`${META.deepest||1}F`;$('homeCharImg').src=IMAGES[id];$('homeCharName').textContent=c.name;$('homeCharSub').textContent=`Tier ${getTier(id)} / ${getGrowth(id).label}　HP ${st.hp}　ATK ${st.atk}`;const n=claimableMissions().length,b=$('homeMissions');b.classList.toggle('alert',n>0);let mark=b.querySelector('.alert-mark');if(n&&!mark){mark=document.createElement('span');mark.className='alert-mark';b.appendChild(mark)}if(n&&mark){mark.textContent='!';mark.setAttribute('aria-label',`受け取り可能なミッション ${n}件`)};if(!n&&mark)mark.remove();saveMeta()}
+function renderHome(){if(!$('homeScreen'))return;const id=META.owned.includes(META.favorite)?META.favorite:(META.owned[0]||'slime'),c=charById(id),st=getCardStats(id);META.favorite=id;$('homeMana').textContent=formatNum(META.mana);$('homeDeepest').textContent=`${META.deepest||1}F`;$('homeCharImg').src=IMAGES[id];$('homeCharName').textContent=c.name;$('homeCharSub').textContent=`Tier ${getTier(id)} / ${getGrowth(id).label}　HP ${st.hp}　ATK ${st.atk}`;const n=claimableMissions().length,b=$('homeMissions');b.classList.toggle('alert',n>0);const mark=b.querySelector('.alert-mark');if(mark)mark.remove();b.setAttribute('aria-label',n>0?`ミッション。受け取り可能なカード ${n}枚`:'ミッション');saveMeta()}
 function goHome(){R=null;S=null;choiceId=null;selectedIds=[...META.party];renderHome();showScreen('homeScreen')}
 function openFavoritePicker(){const html=`<div class="favorite-picker-grid">${ownedIds().map(id=>{const c=charById(id);return `<button class="favorite-pick-card ${META.favorite===id?'current':''}" onclick="setFavorite('${id}')"><img src="${IMAGES[id]}" alt="${c.name}"><div class="favorite-pick-info"><b>${c.name}</b><span>${getGrowth(id).label}　Tier ${getTier(id)}</span></div></button>`}).join('')}</div>`;openChoice('ホーム魔物娘','ホームに表示する魔物娘を選択。',html,'<button class="secondary" onclick="closeChoice()">閉じる</button>')}
 function setFavorite(id){if(!META.owned.includes(id))return;META.favorite=id;saveMeta();closeChoice();renderHome();toast(`${charById(id).name}をホームに設定`)}
