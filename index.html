@@ -90,6 +90,10 @@ body{min-height:100dvh}button{font:inherit;color:inherit}.screen{display:none;mi
 /* overlays */
 .overlay{position:fixed;inset:0;z-index:80;display:none;align-items:flex-end;justify-content:center;background:#0b0810d9;backdrop-filter:blur(5px);padding:12px}.overlay.show{display:flex}.sheet{width:min(520px,100%);max-height:88dvh;overflow:auto;border:1px solid #4a3b57;border-radius:22px;background:#1c1724;padding:15px;box-shadow:0 28px 80px #000a}.sheet h2{font-size:19px;margin:0 0 4px}.sheet p{font-size:10px;color:var(--muted);line-height:1.55;margin:0 0 12px}.choice-list{display:grid;gap:8px}.item-card,.rest-card,.target-card{width:100%;text-align:left;border:1px solid var(--line);border-radius:14px;background:#14101a;padding:10px}.item-card.rare{border-color:#355a78}.item-card.unique{border-color:#7a6030}.item-top{display:flex;justify-content:space-between;gap:8px;align-items:center}.item-name{font-size:13px;font-weight:900}.rarity{font-size:8px;font-weight:900;letter-spacing:.08em}.item-effect{font-size:9px;color:#c6b8d0;line-height:1.45;margin-top:4px}.item-icon{font-size:18px;margin-right:5px}.rest-card b,.target-card b{font-size:12px}.rest-card span,.target-card span{font-size:9px;color:#b8a9c4;display:block;margin-top:3px;line-height:1.4}.sheet-actions{display:flex;gap:8px;margin-top:12px}.sheet-actions button{min-height:46px;border-radius:12px;font-weight:900}.toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%) translateY(20px);z-index:120;padding:8px 11px;border:1px solid #4a3a57;border-radius:999px;background:#211928e8;color:#eee4f5;font-size:9px;opacity:0;pointer-events:none;transition:.2s;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 @media(min-width:520px){.select-grid{grid-template-columns:repeat(3,1fr)}.overlay{align-items:center}}
+
+/* v1.2c developer debug tools */
+.debug-entry{border:1px solid #5a4967;border-radius:999px;background:#17121d;color:#bfaec9;padding:5px 8px;font-size:7px;font-weight:1000;letter-spacing:.08em;white-space:nowrap}.debug-entry:active{transform:translateY(1px)}
+.debug-warning{margin-bottom:10px;padding:9px 10px;border:1px solid #6a4d39;border-radius:12px;background:#21170f;color:#e5c9ad;font-size:8.5px;line-height:1.55}.debug-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px}.debug-summary-box{border:1px solid #3c3146;border-radius:12px;background:#15101b;padding:8px;text-align:center;font-size:7.5px;color:#9e90a8}.debug-summary-box b{display:block;margin-top:2px;color:#f2e8f7;font-size:14px}.debug-panels{display:grid;gap:9px}.debug-panel{border:1px solid #3a3043;border-radius:16px;background:linear-gradient(145deg,#1e1725,#131018);padding:11px}.debug-panel h3{margin:0 0 4px;font-size:12px}.debug-panel p{margin:0 0 9px;color:#9f91a9;font-size:8px;line-height:1.45}.debug-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.debug-actions.one{grid-template-columns:1fr}.debug-btn{min-height:40px;border:1px solid #51405d;border-radius:11px;background:#211929;color:#eee4f4;font-size:8.5px;font-weight:900;padding:7px}.debug-btn.good{border-color:#426751;background:#17251d;color:#c9efd7}.debug-btn.warn{border-color:#6f553d;background:#281d13;color:#f0d1ae}.debug-btn.danger{border-color:#754353;background:#2a151c;color:#f4bdca}.debug-btn:active{transform:translateY(1px)}
 </style>
 
 <style>
@@ -163,7 +167,7 @@ body{min-height:100dvh}button{font:inherit;color:inherit}.screen{display:none;mi
 <body>
 
 <section id="homeScreen" class="screen meta-screen active">
-  <div class="meta-top"><div><div class="meta-title">魔物娘ローグライト</div><div class="meta-caption">迷宮を巡り、仲間を集め、深層を目指す。</div></div><div class="meta-currencies"><span class="meta-pill">魔素 <strong id="homeMana">0</strong></span><span class="meta-pill">最深 <strong id="homeDeepest">1F</strong></span></div></div>
+  <div class="meta-top"><div><div class="meta-title">魔物娘ローグライト</div><div class="meta-caption">迷宮を巡り、仲間を集め、深層を目指す。</div></div><div class="meta-currencies"><span class="meta-pill">魔素 <strong id="homeMana">0</strong></span><span class="meta-pill">最深 <strong id="homeDeepest">1F</strong></span><button id="homeDebug" class="debug-entry">DEBUG</button></div></div>
   <div class="home-hero"><img id="homeCharImg" alt="ホーム魔物娘"><div class="home-char-info"><div><div id="homeCharName" class="home-char-name"></div><div id="homeCharSub" class="home-char-sub"></div></div><div class="home-char-actions"><button id="homeDetailBtn" class="home-detail-btn">詳細</button><button id="homeFavBtn" class="home-fav-btn">★ 変更</button></div></div></div>
   <div class="home-menu">
     <button id="homeExplore" class="home-menu-btn"><div class="menu-icon">🗺️</div><b>探索</b><span>開始する階層を選び、迷宮へ出発。</span></button>
@@ -207,6 +211,18 @@ body{min-height:100dvh}button{font:inherit;color:inherit}.screen{display:none;mi
 <section id="cardDetailScreen" class="screen meta-screen">
   <div class="meta-top"><div><div class="meta-title">カード詳細</div><div class="meta-caption">現在の能力・スキル・アビリティ</div></div><button id="cardDetailBack" class="meta-back">戻る</button></div>
   <div id="cardDetailBody"></div>
+</section>
+
+<section id="debugScreen" class="screen meta-screen">
+  <div class="meta-top"><div><div class="meta-title">DEBUG</div><div class="meta-caption">開発・動作確認用</div></div><button id="debugBack" class="meta-back">ホーム</button></div>
+  <div class="debug-warning">この画面の操作は現在のローカルセーブを書き換えます。製品版では削除予定の開発用機能です。</div>
+  <div id="debugSummary" class="debug-summary"></div>
+  <div class="debug-panels">
+    <div class="debug-panel"><h3>魔素</h3><p>強化画面やTierアップ演出の確認用。</p><div class="debug-actions"><button class="debug-btn good" onclick="debugAddMana(10000)">+10,000</button><button class="debug-btn good" onclick="debugAddMana(1000000)">+1,000,000</button></div></div>
+    <div class="debug-panel"><h3>ミッション</h3><p>通知・受け取り・カード獲得演出の確認用。</p><div class="debug-actions"><button class="debug-btn warn" onclick="debugMakeMissionsClaimable()">5体を受取可能にする</button><button class="debug-btn" onclick="debugResetMissionProgress()">進捗だけ0にする</button><button class="debug-btn danger" style="grid-column:1/-1" onclick="debugResetMissionState()">初期ミッション状態に戻す</button></div></div>
+    <div class="debug-panel"><h3>カード</h3><p>現在実装済みのカードとTier節目をまとめて確認。</p><div class="debug-actions"><button class="debug-btn good" onclick="debugUnlockAllCards()">全カード解放</button><button class="debug-btn" onclick="debugSetOwnedTier(1)">所持をTier1</button><button class="debug-btn" onclick="debugSetOwnedTier(5)">所持をTier5</button><button class="debug-btn" onclick="debugSetOwnedTier(10)">所持をTier10</button><button class="debug-btn" onclick="debugSetOwnedTier(15)">所持をTier15</button></div></div>
+    <div class="debug-panel"><h3>最深到達階層</h3><p>ホーム表示などの確認用。探索コンテンツ自体はまだ1〜10Fのみ。</p><div class="debug-actions"><button class="debug-btn" onclick="debugSetDeepest(1)">1F</button><button class="debug-btn" onclick="debugSetDeepest(10)">10F</button><button class="debug-btn" onclick="debugSetDeepest(20)">20F</button><button class="debug-btn" onclick="debugSetDeepest(100)">100F</button></div></div>
+  </div>
 </section>
 
 <section id="resultScreen" class="screen meta-screen">
@@ -600,6 +616,33 @@ function renderUpgradeDetail(){const id=selectedUpgradeId;if(!id)return;const c=
 function openUpgrade(){renderUpgrade();showScreen('upgradeScreen')}
 function upgradeCard(id){const tier=getTier(id),cost=TIER_COST[tier];if(!cost||META.mana<cost)return;META.mana-=cost;META.tiers[id]=tier+1;saveMeta();renderHome();renderUpgrade();renderUpgradeDetail();showTierUp(id,tier,tier+1)}
 
+/* v1.2c developer debug tools */
+function debugMissionKeys(){return [...new Set(MISSIONS.flatMap(m=>m.reqs.map(r=>r.key)))]}
+function debugMissionIds(){return MISSIONS.map(m=>m.id)}
+function debugSanitizeMeta(){
+  META.owned=[...new Set((META.owned||[]).filter(id=>charById(id)))];
+  INITIAL_OWNED.forEach(id=>{if(!META.owned.includes(id))META.owned.push(id);if(!META.tiers[id])META.tiers[id]=1});
+  for(const id of META.owned)META.tiers[id]=Math.max(1,Math.min(15,Number(META.tiers[id]||1)));
+  if(!META.owned.includes(META.favorite))META.favorite=META.owned[0]||'slime';
+  META.party=(META.party||[]).filter(id=>META.owned.includes(id)).slice(0,3);
+  for(const id of META.owned){if(META.party.length>=3)break;if(!META.party.includes(id))META.party.push(id)}
+  selectedUpgradeId=META.owned.includes(selectedUpgradeId)?selectedUpgradeId:(META.owned[0]||'slime');
+  selectedIds=[...META.party];
+}
+function renderDebug(){
+  if(!$('debugSummary'))return;
+  $('debugSummary').innerHTML=`<div class="debug-summary-box">魔素<b>${formatNum(META.mana)}</b></div><div class="debug-summary-box">所持<b>${META.owned.length}</b></div><div class="debug-summary-box">最深<b>${META.deepest||1}F</b></div>`;
+}
+function openDebug(){renderDebug();showScreen('debugScreen')}
+function debugFinish(message){debugSanitizeMeta();saveMeta();renderHome();renderDebug();toast(message)}
+function debugAddMana(amount){META.mana=Math.max(0,Number(META.mana||0)+amount);debugFinish(`魔素 +${formatNum(amount)}`)}
+function debugResetMissionProgress(){if(!confirm('ミッション進捗だけを0にします。所持カードはそのままです。'))return;for(const k of debugMissionKeys())META.progress[k]=0;debugFinish('ミッション進捗をリセット')}
+function debugResetMissionState(){if(!confirm('初期ミッション5体を未所持に戻し、進捗を0にします。編成やホーム設定も必要に応じて調整されます。'))return;const ids=new Set(debugMissionIds());META.owned=META.owned.filter(id=>!ids.has(id));for(const id of ids){delete META.tiers[id]}for(const k of debugMissionKeys())META.progress[k]=0;debugFinish('初期ミッション状態に戻しました')}
+function debugMakeMissionsClaimable(){if(!confirm('初期ミッション5体を未所持に戻し、全条件を達成済みにします。通知・受取演出の確認用です。'))return;const ids=new Set(debugMissionIds());META.owned=META.owned.filter(id=>!ids.has(id));for(const id of ids){delete META.tiers[id]}for(const m of MISSIONS){for(const r of m.reqs)META.progress[r.key]=Math.max(Number(META.progress[r.key]||0),r.need)}debugFinish('5体を受け取り可能にしました')}
+function debugUnlockAllCards(){if(!confirm('現在実装済みの全カードを所持状態にします。'))return;for(const id of Object.keys(CARD_META)){if(charById(id)&&!META.owned.includes(id))META.owned.push(id);if(!META.tiers[id])META.tiers[id]=1}debugFinish('全カードを解放しました')}
+function debugSetOwnedTier(tier){tier=Math.max(1,Math.min(15,Number(tier)||1));if(!confirm(`所持中の全カードをTier${tier}に変更します。`))return;for(const id of META.owned)META.tiers[id]=tier;debugFinish(`所持カードをTier${tier}に変更`)}
+function debugSetDeepest(floor){floor=Math.max(1,Number(floor)||1);META.deepest=floor;META.cleared10=floor>=10;debugFinish(`最深到達を${floor}Fに変更`)}
+
 // Battle-tier integration
 currentAtk=function(id){return getCardStats(id).atk+(R.atkBonus[id]||0)+itemCount('hunter')}
 startRun=function(){selectedIds=[...META.party];let baseMax=selectedIds.reduce((sum,id)=>sum+getCardStats(id).hp,0);if(selectedIds.includes('golem')&&hasTier('golem',15))baseMax=Math.ceil(baseMax*1.05);R={floor:pendingStartFloor||1,party:[...selectedIds],hp:baseMax,maxHp:baseMax,items:{},atkBonus:Object.fromEntries(selectedIds.map(id=>[id,0])),nodes:[],pendingMana:0,metaCommitted:false,stats:{battles:0,kills:0,chests:0,rests:0,items:0,turns:0,damage:0,taken:0,healed:0},started:Date.now()};generateNodes();renderMap();showScreen('mapScreen')}
@@ -628,7 +671,7 @@ endRun=function(win,reason){closeChoice();if(!R)return;commitRunMeta(win);const 
 retire=function(){if(!R)return;if(S)R.hp=S.hp;endRun(false,'リタイアしました。')}
 
 // Wire meta UI. Existing battle UI handlers are preserved/rebound where necessary.
-$('homeExplore').onclick=openStageSelect;$('homeFormation').onclick=()=>openFormation('homeScreen');$('homeMissions').onclick=openMissions;$('homeUpgrade').onclick=openUpgrade;$('homeDetailBtn').onclick=()=>openCardDetail(META.favorite,'homeScreen');$('homeFavBtn').onclick=openFavoritePicker;
+$('homeExplore').onclick=openStageSelect;$('homeFormation').onclick=()=>openFormation('homeScreen');$('homeMissions').onclick=openMissions;$('homeUpgrade').onclick=openUpgrade;$('homeDetailBtn').onclick=()=>openCardDetail(META.favorite,'homeScreen');$('homeFavBtn').onclick=openFavoritePicker;$('homeDebug').onclick=openDebug;$('debugBack').onclick=goHome;
 $('stageBack').onclick=goHome;$('stage1').onclick=openDepart;$('departBack').onclick=openStageSelect;$('departEdit').onclick=()=>openFormation('departScreen');$('departStart').onclick=startRun;
 $('formationBack').onclick=()=>{if(formationReturn==='departScreen'){renderDepart();showScreen('departScreen')}else goHome()};$('startBtn').onclick=saveFormation;
 $('missionBack').onclick=goHome;$('upgradeBack').onclick=goHome;$('upgradeDetailBack').onclick=()=>{renderUpgrade();showScreen('upgradeScreen')};$('cardDetailBack').onclick=closeCardDetail;$('acquireDetail').onclick=openAcquiredCardDetail;$('acquireClose').onclick=closeCardAcquire;$('tierUpClose').onclick=closeTierUp;$('resultHomeBtn').onclick=goHome;$('resultMissionBtn').onclick=()=>{R=null;S=null;openMissions()};
