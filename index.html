@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
 <meta name="theme-color" content="#120f19" />
-<title>魔物娘ローグライト v1.2i Home Refine</title>
+<title>魔物娘ローグライト v1.2j Home GBF Style</title>
 <style>
 :root{
   --bg:#100d16;--panel:#1a1622;--panel2:#231d2e;--line:#3a3048;--text:#f8f2ff;--muted:#b9acc7;
@@ -99,18 +99,19 @@ body{min-height:100dvh}button{font:inherit;color:inherit}.screen{display:none;mi
 <style>
 /* v1.1 meta loop */
 .meta-screen{background:radial-gradient(circle at 50% -15%,#342145 0,#17121f 37%,var(--bg) 76%)}
-.meta-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin:2px 0 10px}.meta-top>div:first-child{min-width:0;flex:1}
-.meta-title{font-size:21px;font-weight:950;letter-spacing:.01em;line-height:1.08;word-break:keep-all;overflow-wrap:anywhere}.meta-caption{display:none}
+.meta-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin:0 0 8px}.meta-top>div:first-child{min-width:0;flex:1}
+.meta-title{font-size:19px;font-weight:950;letter-spacing:.01em;line-height:1.08;white-space:nowrap}.meta-caption{display:none}
 .meta-currencies{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;align-items:center}.meta-pill{display:inline-flex;align-items:center;gap:5px;padding:6px 9px;border:1px solid var(--line);border-radius:999px;background:#17131f;font-size:9px;font-weight:850;white-space:nowrap}.meta-pill strong{color:var(--gold);font-size:11px}
-.home-stage{position:relative;min-height:620px;margin-top:8px;border-radius:30px;overflow:hidden;background:radial-gradient(circle at 50% 18%,#66407a 0,#3a2647 30%,#20182a 58%,#110f17 100%);box-shadow:0 22px 54px #0008,inset 0 1px #ffffff10}
-.home-stage:before{content:"";position:absolute;left:-10%;right:-10%;top:-44px;height:160px;border-radius:50%;background:radial-gradient(ellipse,#c88ce428 0,#8955a319 45%,transparent 74%);pointer-events:none}
-.home-stage:after{content:"";position:absolute;left:8%;right:8%;bottom:168px;height:140px;border-radius:50%;background:radial-gradient(ellipse,#c381da22 0,#68417818 42%,transparent 72%);filter:blur(5px);pointer-events:none}
-.home-stage img{position:absolute;left:8%;right:8%;top:54px;bottom:166px;width:84%;height:calc(100% - 220px);object-fit:contain;object-position:50% 50%;filter:drop-shadow(0 24px 22px #000c);pointer-events:none}
-.home-grid{position:absolute;left:18px;right:18px;bottom:122px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;align-items:stretch}
-.home-grid-btn{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px;min-height:82px;text-align:center;border:1px solid #5b496d;border-radius:20px;background:linear-gradient(145deg,#241b2dd9,#17131de8);backdrop-filter:blur(8px);box-shadow:0 12px 26px #0005;padding:10px 8px}
-.home-grid-btn .menu-icon{font-size:18px;line-height:1}.home-grid-btn b{display:block;font-size:15px;line-height:1.05}.home-grid-btn.alert{border-color:#ec92b6;background:linear-gradient(145deg,#32202f,#18121f);box-shadow:0 0 0 2px #ff92bd24,0 12px 26px #0005,0 0 22px #ff8fbc14}
-.home-bottom-panel{position:absolute;left:12px;right:12px;bottom:12px;padding:12px 12px 14px;border:1px solid #ffffff1a;border-radius:20px;background:linear-gradient(180deg,#130f18d9,#0f0b14f0);backdrop-filter:blur(10px);box-shadow:0 12px 26px #0005}
-.home-char-line{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}.home-char-name{font-size:23px;font-weight:1000;line-height:1.05}.home-char-sub{display:none}.home-char-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.debug-entry{padding:6px 9px}
+.home-stage{position:relative;min-height:620px;margin-top:4px;border-radius:30px;overflow:hidden;background:radial-gradient(circle at 52% 16%,#66407a 0,#3a2647 32%,#20182a 60%,#110f17 100%);box-shadow:0 22px 54px #0008,inset 0 1px #ffffff10}
+.home-stage:before{content:"";position:absolute;left:-10%;right:-10%;top:-34px;height:150px;border-radius:50%;background:radial-gradient(ellipse,#c88ce428 0,#8955a319 45%,transparent 74%);pointer-events:none}
+.home-stage:after{content:"";position:absolute;left:16%;right:4%;bottom:138px;height:150px;border-radius:50%;background:radial-gradient(ellipse,#c381da22 0,#68417818 42%,transparent 72%);filter:blur(5px);pointer-events:none}
+.home-stage img{position:absolute;left:20%;right:-4%;top:32px;bottom:146px;width:84%;height:calc(100% - 178px);object-fit:contain;object-position:54% 50%;filter:drop-shadow(0 24px 22px #000c);pointer-events:none}
+.home-float-menu{position:absolute;left:14px;top:138px;display:flex;flex-direction:column;gap:12px;z-index:2}
+.home-float-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:108px;min-height:86px;text-align:center;border:1px solid #5b496d;border-radius:22px;background:linear-gradient(145deg,#241b2ddc,#17131de8);backdrop-filter:blur(8px);box-shadow:0 12px 26px #0005;padding:10px 8px}
+.home-float-btn .menu-icon{font-size:18px;line-height:1}.home-float-btn b{display:block;font-size:15px;line-height:1.05}.home-float-btn.alert{border-color:#ec92b6;background:linear-gradient(145deg,#32202f,#18121f);box-shadow:0 0 0 2px #ff92bd24,0 12px 26px #0005,0 0 22px #ff8fbc14}
+.home-bottom-panel{position:absolute;left:12px;right:12px;bottom:12px;padding:12px 12px 14px;border:1px solid #ffffff1a;border-radius:20px;background:linear-gradient(180deg,#130f18d9,#0f0b14f0);backdrop-filter:blur(10px);box-shadow:0 12px 26px #0005;z-index:3}
+.home-char-line{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-bottom:10px}.home-char-name{font-size:20px;font-weight:1000;line-height:1.05}.home-char-sub{font-size:9px;color:#c8b8d4;margin-top:3px;line-height:1.5}.home-char-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .home-detail-btn,.home-fav-btn{border:1px solid #655276;border-radius:12px;background:#241a2c;padding:8px 10px;font-size:9px;font-weight:900;white-space:nowrap}
 .home-main-btn{width:100%;min-height:64px;border:0;border-radius:18px;background:linear-gradient(135deg,var(--violet),#d66bc6 52%,#f2a0bf);color:#170d21;box-shadow:0 12px 26px #0006;font-weight:1000;padding:10px 16px;text-align:center}
 .home-main-btn .main-label{display:block;font-size:21px;letter-spacing:.04em}.home-main-btn .main-sub{display:none}
@@ -124,7 +125,7 @@ body{min-height:100dvh}button{font:inherit;color:inherit}.screen{display:none;mi
 .result-hero{border:1px solid #624d6f;border-radius:24px;background:radial-gradient(circle at 50% 0,#493054,#241a2d 47%,#15111b 90%);padding:22px 15px;text-align:center;box-shadow:0 15px 40px #0006}.result-kicker{font-size:9px;letter-spacing:.18em;color:#c2afce;font-weight:900}.result-title{font-size:27px;font-weight:1000;margin-top:4px}.result-floor{font-size:13px;color:#e4d5ec;margin-top:4px}.result-mana{margin:17px auto 0;display:inline-flex;align-items:baseline;gap:7px;padding:9px 15px;border-radius:999px;border:1px solid #705b43;background:#241d15}.result-mana span{font-size:9px;color:#d8c5a7}.result-mana strong{font-size:22px;color:var(--gold)}.result-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:11px}.result-box{border:1px solid var(--line);border-radius:14px;background:#17131f;padding:10px 6px;text-align:center}.result-box b{display:block;font-size:16px}.result-box span{font-size:8px;color:var(--muted)}.result-details{margin-top:10px;border:1px solid var(--line);border-radius:14px;background:#17131f;padding:0 10px}.result-details summary{padding:11px 0;font-size:9px;font-weight:900;color:#d8c9e2}.result-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding-bottom:10px}.result-detail-grid div{font-size:8.5px;padding:8px;background:#100d15;border-radius:9px;color:#b8a9c4}.result-notice{margin-top:10px;padding:10px 11px;border:1px solid #5b4559;border-radius:13px;background:#211721;font-size:9px;color:#e3ceda;line-height:1.5}.result-notice.good{border-color:#3f6651;background:#14221b;color:#c9f0d8}
 .small-note{font-size:8.5px;color:var(--muted);line-height:1.55;margin:7px 2px 12px}.ghost-btn{border:0;background:transparent;color:#877a91;font-size:8px;padding:8px}
 #selectScreen .pick-tier{font-size:8px;color:var(--gold);font-weight:900;margin-left:4px}
-@media(max-height:760px){.home-stage{min-height:560px}.home-stage img{top:44px;bottom:154px;height:calc(100% - 198px)}.home-grid{bottom:114px;gap:9px}.home-grid-btn{min-height:74px}.home-main-btn{min-height:58px}.home-main-btn .main-label{font-size:18px}.home-char-name{font-size:21px}}
+@media(max-height:760px){.home-stage{min-height:560px}.home-stage img{top:24px;bottom:142px;height:calc(100% - 166px);left:22%;right:-6%;width:84%}.home-float-menu{top:118px;gap:10px}.home-float-btn{width:98px;min-height:78px}.home-char-name{font-size:18px}.home-main-btn{min-height:58px}.home-main-btn .main-label{font-size:18px}}.home-grid{bottom:114px;gap:9px}.home-grid-btn{min-height:74px}.home-main-btn{min-height:58px}.home-main-btn .main-label{font-size:18px}.home-char-name{font-size:21px}}
 </style>
 
 <style>
@@ -200,10 +201,10 @@ body{min-height:100dvh}button{font:inherit;color:inherit}.screen{display:none;mi
   <div class="meta-top"><div><div class="meta-title">魔物娘ローグライト</div><div class="meta-caption">迷宮を巡り、仲間を集め、深層を目指す。</div></div><div class="meta-currencies"><span class="meta-pill">魔素 <strong id="homeMana">0</strong></span><span class="meta-pill">最深 <strong id="homeDeepest">1F</strong></span><button id="homeDebug" class="debug-entry">DEBUG</button></div></div>
   <div class="home-stage">
     <img id="homeCharImg" alt="ホーム魔物娘">
-    <div class="home-grid">
-      <button id="homeFormation" class="home-grid-btn"><div class="menu-icon">⚔️</div><b>編成</b></button>
-      <button id="homeMissions" class="home-grid-btn"><div class="menu-icon">📜</div><b>ミッション</b></button>
-      <button id="homeUpgrade" class="home-grid-btn"><div class="menu-icon">✨</div><b>強化</b></button>
+    <div class="home-float-menu">
+      <button id="homeFormation" class="home-float-btn"><div class="menu-icon">⚔️</div><b>編成</b></button>
+      <button id="homeMissions" class="home-float-btn"><div class="menu-icon">📜</div><b>ミッション</b></button>
+      <button id="homeUpgrade" class="home-float-btn"><div class="menu-icon">✨</div><b>強化</b></button>
     </div>
     <div class="home-bottom-panel">
       <div class="home-char-line">
