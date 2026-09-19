@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
 <meta name="theme-color" content="#120f19" />
-<title>魔物娘ローグライト v1.3b Enemy Balance</title>
+<title>魔物娘ローグライト v1.3c Enemy Damage Tuning</title>
 <style>
 :root{
   --bg:#100d16;--panel:#1a1622;--panel2:#231d2e;--line:#3a3048;--text:#f8f2ff;--muted:#b9acc7;
@@ -774,7 +774,7 @@ selectedIds=[...META.party];renderHome();showScreen('homeScreen');
 
 <script>
 /* =============================
-   v1.3b 11F-20F Enemy Balance Prototype
+   v1.3c 11F-20F Enemy Damage Tuning
    - 7 new enemies
    - new combat mechanics
    - isolated debug battles
@@ -791,29 +791,29 @@ Object.assign(IMAGES,{
 
 Object.assign(ENEMIES,{
  poison_slime:{id:'poison_slime',name:'ポイズンスライム娘',hp:160,image:'enemy_poison_slime',stage:2,manaReward:20,actionMode:'cycle',portraitScale:1.04,portraitOffsetY:-2,actions:[
-  {name:'攻撃',kind:'damagePoison',type:'physical',damage:19,chance:40,poisonTurns:1,desc:'19物理ダメージ。40%で【毒1】'},
-  {name:'ポイズンドロウ',kind:'damagePoison',type:'pleasure',damage:23,chance:30,poisonTurns:2,desc:'23快楽ダメージ。30%で【毒2】'},
+  {name:'攻撃',kind:'damagePoison',type:'physical',damage:17,chance:40,poisonTurns:1,desc:'17物理ダメージ。40%で【毒1】'},
+  {name:'ポイズンドロウ',kind:'damagePoison',type:'pleasure',damage:21,chance:30,poisonTurns:2,desc:'21快楽ダメージ。30%で【毒2】'},
   {name:'防御',kind:'guard',desc:'このターン、被ダメージ半減'},
   {name:'毒の息',kind:'poison',chance:100,poisonTurns:2,desc:'100%で【毒2】'}]},
  bee:{id:'bee',name:'ミツバチ娘',hp:125,image:'enemy_bee',stage:2,manaReward:20,actionMode:'cycle',portraitScale:1.05,portraitOffsetY:-2,actions:[
-  {name:'攻撃',kind:'damage',type:'physical',damage:24,desc:'24物理ダメージ'},
+  {name:'攻撃',kind:'damage',type:'physical',damage:22,desc:'22物理ダメージ'},
   {name:'甘い蜜',kind:'healCleanse',heal:30,desc:'HP30回復。状態異常全解除'},
-  {name:'一刺し',kind:'damagePoison',type:'physical',damage:25,chance:20,poisonTurns:2,desc:'25物理ダメージ。20%で【毒2】'},
+  {name:'一刺し',kind:'damagePoison',type:'physical',damage:23,chance:20,poisonTurns:2,desc:'23物理ダメージ。20%で【毒2】'},
   {name:'テン上げ',kind:'hype',damageUp:5,evadeUp:8,desc:'与ダメージ+5、回避率+8.0%（重複しない）'}]},
  lamia:{id:'lamia',name:'ラミア',hp:185,image:'enemy_lamia',stage:2,manaReward:20,actionMode:'cycle',portraitScale:1.05,portraitOffsetY:-2,actions:[
-  {name:'ヘビィスマッシュ',kind:'damageDisable',type:'physical',damage:30,chance:50,disableTurns:1,desc:'30物理ダメージ。50%で【ショック1】'},
+  {name:'ヘビィスマッシュ',kind:'damageDisable',type:'physical',damage:27,chance:50,disableTurns:1,desc:'27物理ダメージ。50%で【ショック1】'},
   {name:'防御',kind:'guard',desc:'このターン、被ダメージ半減'},
-  {name:'攻撃',kind:'damage',type:'physical',damage:25,desc:'25物理ダメージ'},
-  {name:'ラミアロール',kind:'damage',type:'pleasure',damage:22,desc:'22快楽ダメージ'}]},
+  {name:'攻撃',kind:'damage',type:'physical',damage:23,desc:'23物理ダメージ'},
+  {name:'ラミアロール',kind:'damage',type:'pleasure',damage:21,desc:'21快楽ダメージ'}]},
  slug:{id:'slug',name:'ナメクジ娘',hp:180,image:'enemy_slug',stage:2,manaReward:20,actionMode:'cycle',portraitScale:1.05,portraitOffsetY:-2,actions:[
-  {name:'ぬめぬめ',kind:'pleasureVuln',type:'pleasure',damage:20,vulnUp:2,desc:'20快楽ダメージ。味方の快楽被ダメージ+2'},
-  {name:'ぬめぬめ',kind:'pleasureVuln',type:'pleasure',damage:20,vulnUp:2,desc:'20快楽ダメージ。味方の快楽被ダメージ+2'},
+  {name:'ぬめぬめ',kind:'pleasureVuln',type:'pleasure',damage:19,vulnUp:2,desc:'19快楽ダメージ。味方の快楽被ダメージ+2'},
+  {name:'ぬめぬめ',kind:'pleasureVuln',type:'pleasure',damage:19,vulnUp:2,desc:'19快楽ダメージ。味方の快楽被ダメージ+2'},
   {name:'ふしぎな粘液',kind:'clearBuffOrStack',desc:'味方のランダムなバフまたはスタック一種類を消滅'},
-  {name:'ぬめぬめ',kind:'pleasureVuln',type:'pleasure',damage:20,vulnUp:2,desc:'20快楽ダメージ。味方の快楽被ダメージ+2'}]},
+  {name:'ぬめぬめ',kind:'pleasureVuln',type:'pleasure',damage:19,vulnUp:2,desc:'19快楽ダメージ。味方の快楽被ダメージ+2'}]},
  ghost:{id:'ghost',name:'ゴースト娘',hp:120,image:'enemy_ghost',stage:2,manaReward:20,actionMode:'cycle',portraitScale:1.05,portraitOffsetY:-2,actions:[
-  {name:'ファイア',kind:'damage',type:'magic',damage:23,desc:'23魔導ダメージ'},
+  {name:'ファイア',kind:'damage',type:'magic',damage:22,desc:'22魔導ダメージ'},
   {name:'カース',kind:'randomStatus',status:'curse',min:40,max:80,step:10,desc:'【呪い】40%〜80%付与（10%単位）'},
-  {name:'プレジャー',kind:'damage',type:'pleasure',damage:22,desc:'22快楽ダメージ'},
+  {name:'プレジャー',kind:'damage',type:'pleasure',damage:21,desc:'21快楽ダメージ'},
   {name:'憑依',kind:'possess',type:'neutral',desc:'ランダムな味方の攻撃力と同値の無属性ダメージ'}]},
  silver_slime:{id:'silver_slime',name:'シルバースライム',hp:40,image:'enemy_silver_slime',stage:2,manaReward:170,actionMode:'cycle',damageCap:10,escapeChance:20,ability:{name:'銀の身体',desc:'会心以外で一度に受けるダメージは最大10。行動予告が時々「逃げる」になる。'},portraitScale:1.03,portraitOffsetY:-2,actions:[
   {name:'コールド',kind:'damage',type:'magic',damage:32,desc:'32魔導ダメージ'},
@@ -822,11 +822,11 @@ Object.assign(ENEMIES,{
   {name:'魔閃光',kind:'preemptiveFlash',type:'neutral',damage:25,preemptive:true,desc:'先に行動。25無属性ダメージ。50%でランダムな「待機」一つを無効化'}],
   escape:{name:'逃げる',kind:'escape',desc:'戦闘を終了する（報酬無し）'}},
  tentacle:{id:'tentacle',name:'テンタクル',hp:350,image:'enemy_tentacle',stage:2,manaReward:100,boss:true,actionMode:'cycle',portraitScale:1.03,portraitOffsetY:-1,actions:[
-  {name:'攻撃',kind:'damagePoison',type:'physical',damage:31,chance:20,poisonTurns:1,desc:'31物理ダメージ。20%で【毒1】'},
-  {name:'不浄の悦楽',kind:'conditionalPleasure',type:'pleasure',damage:28,statusDamage:42,desc:'28快楽ダメージ。相手が状態異常なら42'},
+  {name:'攻撃',kind:'damagePoison',type:'physical',damage:27,chance:20,poisonTurns:1,desc:'27物理ダメージ。20%で【毒1】'},
+  {name:'不浄の悦楽',kind:'conditionalPleasure',type:'pleasure',damage:25,statusDamage:37,desc:'25快楽ダメージ。相手が状態異常なら37'},
   {name:'ナイトメアミスト',kind:'cursePoison',curseMin:30,curseMax:60,curseStep:10,poisonChance:50,poisonTurns:2,desc:'【呪い】30%〜60%付与、50%で【毒2】'},
-  {name:'触手連打',kind:'multiPoison',type:'physical',damage:7,hits:4,chance:10,poisonTurns:1,desc:'7物理ダメージ＋10%で【毒1】を4回'}],
-  special50:{name:'テンタクルイロージョン',kind:'erosion',type:'physical',damage:40,desc:'40物理ダメージ。ランダムなスタック一種類を消滅。消滅させたなら与ダメージ+3'}}
+  {name:'触手連打',kind:'multiPoison',type:'physical',damage:6,hits:4,chance:10,poisonTurns:1,desc:'6物理ダメージ＋10%で【毒1】を4回'}],
+  special50:{name:'テンタクルイロージョン',kind:'erosion',type:'physical',damage:35,desc:'35物理ダメージ。ランダムなスタック一種類を消滅。消滅させたなら与ダメージ+3'}}
 });
 
 const SHALLOW_ENEMY_IDS=['slime','harpy','goblin','rabbit','arachne'];
@@ -888,7 +888,7 @@ const retireV12=retire;
 retire=function(){if(R?.debugBattle){leaveDebugBattle('模擬戦を終了');return}return retireV12()};
 $('retireBattle').onclick=retire;$('retireMap').onclick=retire;
 
-document.title='魔物娘ローグライト v1.3b Enemy Balance';
+document.title='魔物娘ローグライト v1.3c Enemy Damage Tuning';
 </script>
 
 </body></html>
