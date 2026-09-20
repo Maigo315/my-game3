@@ -889,6 +889,265 @@ retire=function(){if(R?.debugBattle){leaveDebugBattle('模擬戦を終了');retu
 $('retireBattle').onclick=retire;$('retireMap').onclick=retire;
 
 document.title='魔物娘ローグライト v1.3e Tentacle Curse 20-40%';
+
+
+/* v1.4a item expansion & conditional item pool */
+(()=>{
+  const setItem=(id,changes)=>{const it=ITEMS.find(x=>x.id===id);if(it)Object.assign(it,changes)};
+  setItem('food',{effect:'5ターン目まで、ターン終了時に最大HPの2%回復'});
+  setItem('needle',{effect:'物理与ダメージ時、20%で【毒2】付与'});
+  setItem('supplier',{effect:'いずれかのスタックが消費されるたび、最大HPの1%回復'});
+  setItem('backpack',{effect:'新たなアイテムを獲得するたび、最大HPの3%回復'});
+
+  const newItems=[
+    {id:'glossy_oil',name:'つやつやオイル',rarity:'common',icon:'🧴',effect:'味方のバフまたはスタックを消滅させる効果を無効にする。（1戦闘に1度）'},
+    {id:'neutralizer',name:'中和剤',rarity:'common',icon:'⚗️',effect:'味方が受ける【毒】の持続ターンを-1する。（1戦闘に1度）'},
+    {id:'purify_ofuda',name:'清めの御札',rarity:'common',icon:'🧿',effect:'味方が受ける【呪い】を-10%する。（1戦闘に1度）'},
+    {id:'numb_seal',name:'不感のシール',rarity:'common',icon:'🩹',effect:'味方が受ける【魅了】を-10%する。（1戦闘に1度）'},
+    {id:'armor_breaker',name:'鎧砕き',rarity:'common',icon:'⛏️',effect:'防御中の敵への与ダメージ+20%'},
+    {id:'emergency_evade',name:'緊急回避パック',rarity:'rare',icon:'🪂',effect:'ターン開始時、HPが25%以下なら、そのターンの間、回避率+100%。（1戦闘に1度）'},
+    {id:'revenge_blade',name:'報復の刃',rarity:'rare',icon:'⚔️',effect:'状態異常が付与された時、次のターンまで与ダメージ+20%。'},
+    {id:'light_hammer',name:'軽量ハンマー',rarity:'rare',icon:'🔨',effect:'戦闘開始時、攻撃力が最小の味方1体の攻撃力+20%。'},
+    {id:'pursuit_spear',name:'追い討ちの槍',rarity:'rare',icon:'🔱',effect:'状態異常・デバフが付与された敵への与ダメージ+10%。'},
+    {id:'small_medal',name:'ちいさなメダル',rarity:'rare',icon:'🪙',effect:'戦闘終了時の獲得魔素+10%。'},
+    {id:'time_bomb',name:'時限式ボム',rarity:'rare',icon:'💣',effect:'8ターン目終了時、敵に攻撃力最大の味方の攻撃力の2倍ダメージ。'},
+    {id:'cheer_towel',name:'激励のタオル',rarity:'unique',icon:'🧣',effect:'敵魔物娘を撃破するたび、最大HP+5。'},
+    {id:'tactician_glasses',name:'軍師の眼鏡',rarity:'unique',icon:'👓',effect:'戦闘終了時、所持している各スタックを最大3まで次の戦闘へ持ち越す。'}
+  ];
+  for(const it of newItems)if(!ITEMS.some(x=>x.id===it.id))ITEMS.push(it);
+
+  const stackItemResource={
+    jelly:'gel',claw:'wild',mysticPowder:'mystic',sprout:'nature',crystal:'magic',
+    cube:'material',scale:'wrath',bones:'immortal',shell:'sea',miracleFeather:'faith'
+  };
+  const resourceLabelToKey={
+    'ジェル':'gel','野生':'wild','神秘':'mystic','自然':'nature','自然の力':'nature','魔力':'magic',
+    'マテリアル':'material','逆鱗':'wrath','不滅':'immortal','海':'sea','海の力':'sea','信仰':'faith','ラッキー':'lucky'
+  };
+  function charUsesResource(c,key){
+    if(!c)return false;
+    const refs=[];
+    if(c.res)refs.push(resourceLabelToKey[c.res]||c.res);
+    if(Array.isArray(c.usesRes))for(const r of c.usesRes)refs.push(resourceLabelToKey[r]||r);
+    return refs.includes(key);
+  }
+  function itemUsableForParty(it){
+    const key=stackItemResource[it.id];
+    if(!key)return true;
+    const party=R?.party||META?.party||[];
+    return party.some(id=>charUsesResource(charById(id),key));
+  }
+  availableItems=function(rarity,exclude=[]){
+    let p=ITEMS.filter(i=>i.rarity===rarity&&!exclude.includes(i.id)&&itemUsableForParty(i));
+    if(rarity==='unique')p=p.filter(i=>!itemCount(i.id));
+    return p;
+  };
+  rollItem=function(kind,exclude=[]){
+    let rarity=rollRarity(kind),pool=availableItems(rarity,exclude);
+    if(!pool.length){rarity=rarity==='unique'?'rare':'common';pool=availableItems(rarity,exclude)}
+    if(!pool.length)pool=ITEMS.filter(i=>!exclude.includes(i.id)&&itemUsableForParty(i)&&!(i.rarity==='unique'&&itemCount(i.id)));
+    return pool[Math.floor(Math.random()*pool.length)];
+  };
+
+  const baseAcquireItem=acquireItem;
+  acquireItem=function(it){
+    const oldBackpack=itemCount('backpack');
+    R.items[it.id]=(R.items[it.id]||0)+1;
+    R.stats.items++;
+    if(it.id==='capsule')R.maxHp+=20;
+    if(oldBackpack>0){
+      const each=Math.ceil(R.maxHp*.03),v=each*oldBackpack;
+      healRun(v,'冒険者のリュック');
+    }
+    toast(`${it.name} を獲得`);
+  };
+
+  const baseHealBattle=healBattle;
+  healBattle=function(n,sourceId,label){
+    if(label==='非常食')n=Math.ceil(S.maxHp*.02)*itemCount('food');
+    else if(label==='サプライヤー')n=Math.ceil(S.maxHp*.01)*itemCount('supplier');
+    return baseHealBattle(n,sourceId,label);
+  };
+
+  procAttackItems=function(type){
+    if(type==='physical'&&itemCount('needle')&&rnd(Math.min(100,20*itemCount('needle')))){
+      S.enemy.status.poisonTurns=Math.max(S.enemy.status.poisonTurns,2);
+      addLog(`毒針：敵に【毒2】`,'note');
+      fxEnemy('毒 2T','status',{small:true,y:'63%'});
+    }
+    if(type==='pleasure'&&itemCount('lip')&&rnd(Math.min(100,10*itemCount('lip'))))applyEnemyPercent('charm',30,'魅惑のリップ');
+    if((type==='physical'||type==='magic')&&itemCount('straw')&&rnd(Math.min(100,10*itemCount('straw'))))applyEnemyPercent('curse',30,'藁人形');
+  };
+
+  function consumeBattleItemUse(id){
+    if(!S?.itemUses||!S.itemUses[id])return false;
+    S.itemUses[id]--;
+    return true;
+  }
+  function triggerRevengeBlade(){
+    const n=itemCount('revenge_blade');if(!n)return;
+    S.revengeUntilTurn=Math.max(S.revengeUntilTurn||0,S.turn+1);
+    addLog(`報復の刃：次のターンまで与ダメージ+${20*n}%`,'good');
+    fxPartyRes(`報復 +${20*n}%`,'good');
+  }
+
+  applyPartyPoison=function(turns,label){
+    const resist=statusResist();
+    if(resist&&rnd(resist)){addLog(`${label}：状態異常耐性${resist}%で【毒】を無効化。`,'good');fxPartyRes('RESIST','info');return false}
+    let t=turns;
+    if(t>0&&consumeBattleItemUse('neutralizer')){
+      t=Math.max(0,t-1);
+      addLog(`中和剤：【毒】の持続ターンを${turns} → ${t}に軽減。`,'good');
+      fxPartyRes('毒 -1T','good');
+    }
+    if(t<=0){addLog(`${label}：【毒】は中和された。`,'good');return false}
+    const before=S.status.poisonTurns;
+    S.status.poisonTurns=Math.max(S.status.poisonTurns,t);
+    addLog(`${label}：パーティに【毒${t}】`,'bad');
+    fxPartyRes(`毒 ${t}T`,'bad');
+    checkArachneTrigger();
+    if(S.status.poisonTurns>before)triggerRevengeBlade();
+    return true;
+  };
+
+  applyPartyPercent=function(k,n,label){
+    const resist=statusResist();
+    if(resist&&rnd(resist)){addLog(`${label}：状態異常耐性${resist}%で【${statusName(k)}】を無効化。`,'good');fxPartyRes('RESIST','info');return false}
+    let amount=n;
+    if(k==='curse'&&amount>0&&consumeBattleItemUse('purify_ofuda')){
+      amount=Math.max(0,amount-10);addLog(`清めの御札：【呪い】${n}% → ${amount}%に軽減。`,'good');fxPartyRes('呪い -10%','good');
+    }
+    if(k==='charm'&&amount>0&&consumeBattleItemUse('numb_seal')){
+      amount=Math.max(0,amount-10);addLog(`不感のシール：【魅了】${n}% → ${amount}%に軽減。`,'good');fxPartyRes('魅了 -10%','good');
+    }
+    if(amount<=0){addLog(`${label}：【${statusName(k)}】は無効化された。`,'good');return false}
+    const before=S.status[k]||0;
+    S.status[k]=clamp(before+amount,0,100);
+    addLog(`${label}：パーティに【${statusName(k)}】${amount}% → ${S.status[k]}%`,'bad');
+    fxPartyRes(`${statusName(k)} +${amount}%`,'bad');
+    checkArachneTrigger();
+    if(S.status[k]>before)triggerRevengeBlade();
+    return true;
+  };
+
+  const baseApplyDisableTurns=applyDisableTurns;
+  applyDisableTurns=function(turns,label){const ok=baseApplyDisableTurns(turns,label);if(ok)triggerRevengeBlade();return ok};
+  const baseApplySeal=applySeal;
+  applySeal=function(turns,label){const before=S.status.seal?`${S.status.seal.id}:${S.status.seal.turns}`:'';baseApplySeal(turns,label);const after=S.status.seal?`${S.status.seal.id}:${S.status.seal.turns}`:'';if(after&&after!==before)triggerRevengeBlade()};
+
+  const baseRemoveRandomStack=removeRandomStack;
+  removeRandomStack=function(label){
+    const has=Object.values(S.res||{}).some(v=>v>0);
+    if(has&&consumeBattleItemUse('glossy_oil')){addLog(`つやつやオイル：スタック消滅を無効化。`,'good');fxPartyRes('消滅無効','good');return false}
+    return baseRemoveRandomStack(label);
+  };
+  const baseRemoveRandomBuffOrStack=removeRandomBuffOrStack;
+  removeRandomBuffOrStack=function(label){
+    let has=Object.values(S.res||{}).some(v=>v>0);
+    if(!has)for(const c of S.party){if(c.currentAtk>currentAtk(c.id)){has=true;break}}
+    if(has&&consumeBattleItemUse('glossy_oil')){addLog(`つやつやオイル：バフ・スタック消滅を無効化。`,'good');fxPartyRes('消滅無効','good');return false}
+    return baseRemoveRandomBuffOrStack(label);
+  };
+
+  function activateEmergencyEvade(){
+    if(S.ended||S.emergencyEvadeTurn===S.turn||S.hp>S.maxHp*.25)return;
+    if(consumeBattleItemUse('emergency_evade')){
+      S.emergencyEvadeTurn=S.turn;
+      addLog(`緊急回避パック：HP25%以下。TURN ${S.turn}の回避率+100%。`,'good');
+      fxPartyRes('回避 +100%','good');
+    }
+  }
+  const basePartyEvade=partyEvade;
+  partyEvade=function(){return clamp(basePartyEvade()+(S?.emergencyEvadeTurn===S?.turn?100:0),0,100)};
+
+  function enemyHasStatusOrDebuff(){
+    if(!S?.enemy?.status)return false;
+    return Object.values(S.enemy.status).some(v=>typeof v==='number'&&v>0);
+  }
+  dealEnemy=function(sourceId,base,type,label){
+    if(S.ended)return 0;
+    if((type==='physical'||type==='pleasure')&&rnd(enemyEvade())){addLog(`${label}：${S.enemy.name}が回避！`,'bad');fxEnemy('MISS','miss');return 0}
+    let amount=base+fairyBonus()+outgoingFlat(type);
+    const crit=rnd(partyCrit());if(crit){amount*=1.5;triggerLucky('会心')}
+    amount*=Math.max(0,1-S.status.charm*.005);
+    amount*=1+S.enemy.status.curse*.01;
+    if(S.turn===1)amount*=1+.5*itemCount('scorpion');
+    if((S.revengeUntilTurn||0)>=S.turn)amount*=1+.20*itemCount('revenge_blade');
+    if(enemyHasStatusOrDebuff())amount*=1+.10*itemCount('pursuit_spear');
+    if(S.enemy.intent?.kind==='guard'){
+      amount*=.5;
+      amount*=1+.20*itemCount('armor_breaker');
+    }
+    amount=Math.max(0,Math.floor(amount));
+    if(S.enemy.damageCap&&!crit)amount=Math.min(amount,S.enemy.damageCap);
+    const before=S.enemy.hp;S.enemy.hp=Math.max(0,S.enemy.hp-amount);const done=before-S.enemy.hp;
+    addLog(`${label}：${done}${typeLabel(type)}ダメージ${crit?'（会心）':''}${S.enemy.intent?.kind==='guard'?'（防御）':''}`,'hit');
+    if(done>0){if(crit)fxEnemy('CRITICAL','crit',{small:true,y:'42%'});fxEnemy(`-${done}`,'damage')}
+    R.stats.damage+=done;if(sourceId&&S.stats[sourceId])S.stats[sourceId].damage+=done;
+    if(sourceId==='bess'&&done>0&&rnd(50))gainRes('gel',1,'スライムベス娘');
+    if(done>0)procAttackItems(type);
+    if(S.enemy.id==='podarge'&&!S.enemy.windTriggered&&!S.enemy.windPending&&S.enemy.hp>0&&S.enemy.hp<=S.enemy.maxHp*.5){S.enemy.windPending=true;addLog(`ポダルゲのHPが50%以下。次の行動に「ウィンド」が割り込む！`,'bad')}
+    checkBattleEnd();return done;
+  };
+
+  function triggerTimeBomb(){
+    const n=itemCount('time_bomb');if(!n||S.timeBombTriggered||S.turn!==8||S.ended)return;
+    S.timeBombTriggered=true;
+    const maxAtk=Math.max(...S.party.map(c=>c.currentAtk));
+    let amount=maxAtk*2*n;
+    if(S.enemy.intent?.kind==='guard')amount=Math.floor(amount*.5);
+    if(S.enemy.damageCap)amount=Math.min(amount,S.enemy.damageCap);
+    const before=S.enemy.hp;S.enemy.hp=Math.max(0,S.enemy.hp-amount);const done=before-S.enemy.hp;
+    addLog(`時限式ボム：${done}ダメージ！`,'hit');if(done>0)fxEnemy(`-${done}`,'damage');R.stats.damage+=done;checkBattleEnd();
+  }
+
+  const baseTurnEnd=turnEnd;
+  turnEnd=function(){
+    if(!S.ended&&S.turn===8)triggerTimeBomb();
+    if(S.ended)return;
+    baseTurnEnd();
+    if(!S.ended)activateEmergencyEvade();
+  };
+
+  const baseStartBattle=startBattle;
+  startBattle=function(enemyId){
+    baseStartBattle(enemyId);
+    if(!S)return;
+    S.itemUses={
+      glossy_oil:itemCount('glossy_oil'),neutralizer:itemCount('neutralizer'),purify_ofuda:itemCount('purify_ofuda'),
+      numb_seal:itemCount('numb_seal'),emergency_evade:itemCount('emergency_evade')
+    };
+    S.revengeUntilTurn=0;S.emergencyEvadeTurn=0;S.timeBombTriggered=false;
+    if(itemCount('tactician_glasses')&&R.carriedRes){
+      const got=[];
+      for(const [k,v] of Object.entries(R.carriedRes))if(v>0&&k in S.res){S.res[k]+=Math.min(3,v);got.push(`${resName(k)}${Math.min(3,v)}`)}
+      if(got.length)addLog(`軍師の眼鏡：${got.join(' / ')}を持ち越した。`,'good');
+    }
+    const hammer=itemCount('light_hammer');
+    if(hammer&&S.party.length){
+      const min=Math.min(...S.party.map(c=>c.currentAtk)),cands=S.party.filter(c=>c.currentAtk===min),c=cands[Math.floor(Math.random()*cands.length)];
+      const up=Math.ceil(c.currentAtk*.20*hammer);c.currentAtk+=up;
+      addLog(`軽量ハンマー：${c.name}の攻撃力+${up} → ${c.currentAtk}`,'good');fxCard(`ATK +${up}`,'good',c.id);
+    }
+    activateEmergencyEvade();
+    renderBattle();
+  };
+
+  const baseBattleVictory=battleVictory;
+  battleVictory=function(){
+    if(R.debugBattle){baseBattleVictory();return}
+    const originalReward=S.enemy.manaReward;
+    const baseReward=originalReward??(S.enemy.boss?50:10),medals=itemCount('small_medal');
+    if(medals)S.enemy.manaReward=Math.floor(baseReward*(1+.10*medals));
+    const carry=itemCount('tactician_glasses')?Object.fromEntries(Object.entries(S.res).map(([k,v])=>[k,Math.min(3,v)])):null;
+    baseBattleVictory();
+    if(originalReward===undefined)delete S.enemy.manaReward;else S.enemy.manaReward=originalReward;
+    if(carry){R.carriedRes=carry;const kept=Object.entries(carry).filter(([,v])=>v>0).map(([k,v])=>`${resName(k)}${v}`);if(kept.length)addLog(`軍師の眼鏡：${kept.join(' / ')}を次戦へ持ち越す。`,'good')}
+    if(itemCount('cheer_towel')){R.maxHp+=5;S.maxHp+=5;addLog(`激励のタオル：最大HP+5 → ${R.maxHp}`,'good');fxPartyHp('最大HP +5','heal')}
+    renderBattle();
+  };
+})();
+
 </script>
 
 </body></html>
