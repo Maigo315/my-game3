@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
 <meta name="theme-color" content="#120f19" />
-<title>魔物娘ローグライト v1.3d Poison 5%</title>
+<title>魔物娘ローグライト v1.3e Tentacle Curse 20-40%</title>
 <style>
 :root{
   --bg:#100d16;--panel:#1a1622;--panel2:#231d2e;--line:#3a3048;--text:#f8f2ff;--muted:#b9acc7;
@@ -774,7 +774,7 @@ selectedIds=[...META.party];renderHome();showScreen('homeScreen');
 
 <script>
 /* =============================
-   v1.3d Poison Damage 5% Tuning
+   v1.3e Tentacle Curse 20-40% Tuning
    - 7 new enemies
    - new combat mechanics
    - isolated debug battles
@@ -824,7 +824,7 @@ Object.assign(ENEMIES,{
  tentacle:{id:'tentacle',name:'テンタクル',hp:350,image:'enemy_tentacle',stage:2,manaReward:100,boss:true,actionMode:'cycle',portraitScale:1.03,portraitOffsetY:-1,actions:[
   {name:'攻撃',kind:'damagePoison',type:'physical',damage:27,chance:20,poisonTurns:1,desc:'27物理ダメージ。20%で【毒1】'},
   {name:'不浄の悦楽',kind:'conditionalPleasure',type:'pleasure',damage:25,statusDamage:37,desc:'25快楽ダメージ。相手が状態異常なら37'},
-  {name:'ナイトメアミスト',kind:'cursePoison',curseMin:30,curseMax:60,curseStep:10,poisonChance:50,poisonTurns:2,desc:'【呪い】30%〜60%付与、50%で【毒2】'},
+  {name:'ナイトメアミスト',kind:'cursePoison',curseMin:20,curseMax:40,curseStep:10,poisonChance:50,poisonTurns:2,desc:'【呪い】20%〜40%付与、50%で【毒2】'},
   {name:'触手連打',kind:'multiPoison',type:'physical',damage:6,hits:4,chance:10,poisonTurns:1,desc:'6物理ダメージ＋10%で【毒1】を4回'}],
   special50:{name:'テンタクルイロージョン',kind:'erosion',type:'physical',damage:35,desc:'35物理ダメージ。ランダムなスタック一種類を消滅。消滅させたなら与ダメージ+3'}}
 });
@@ -888,7 +888,7 @@ const retireV12=retire;
 retire=function(){if(R?.debugBattle){leaveDebugBattle('模擬戦を終了');return}return retireV12()};
 $('retireBattle').onclick=retire;$('retireMap').onclick=retire;
 
-document.title='魔物娘ローグライト v1.3d Poison 5%';
+document.title='魔物娘ローグライト v1.3e Tentacle Curse 20-40%';
 </script>
 
 </body></html>
