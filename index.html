@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
 <meta name="theme-color" content="#120f19" />
-<title>魔物娘ローグライト v1.5a New Allies</title>
+<title>魔物娘ローグライト v1.7a Long Expedition</title>
 <style>
 :root{
   --bg:#100d16;--panel:#1a1622;--panel2:#231d2e;--line:#3a3048;--text:#f8f2ff;--muted:#b9acc7;
@@ -228,8 +228,8 @@ body{min-height:100dvh}button{font:inherit;color:inherit}.screen{display:none;mi
 
 <section id="stageSelectScreen" class="screen meta-screen">
   <div class="meta-top"><div><div class="meta-title">探索</div><div class="meta-caption">開始する階層帯を選択</div></div><button id="stageBack" class="meta-back">ホーム</button></div>
-  <button id="stage1" class="stage-card"><div class="stage-topline"><span class="stage-floor">1F ～ 10F</span><span class="stage-status">探索可能</span></div><div class="stage-desc">浅層。Tier1でも構築と判断次第で踏破可能。10Fにはポダルゲが待つ。</div><div class="stage-reward">通常撃破 <b>魔素10</b>　ボス撃破 <b>魔素50</b></div></button>
-  <button id="stage2" class="stage-card locked"><div class="stage-topline"><span class="stage-floor">11F ～ 20F</span><span class="stage-status" id="stage2Status">10F踏破で解放</span></div><div class="stage-desc">最初の本格的な関門。Tier育成とアイテム構築を活かして、20Fのテンタクルを目指す。</div><div class="stage-reward">通常撃破 <b>魔素25</b>　シルバー <b>魔素175</b>　ボス撃破 <b>魔素125</b></div></button>
+  <button id="stage1" class="stage-card"><div class="stage-topline"><span class="stage-floor">1F ～ 10F</span><span class="stage-status">探索可能</span></div><div class="stage-desc">浅層。Tier1でも構築と判断次第で踏破可能。10F踏破後は、HP・アイテム・探索中強化を保持したまま11Fへ続行できる。</div><div class="stage-reward">通常撃破 <b>魔素10</b>　ボス撃破 <b>魔素50</b></div></button>
+  <button id="stage2" class="stage-card locked"><div class="stage-topline"><span class="stage-floor">11F ～ 20F</span><span class="stage-status" id="stage2Status">10F踏破で解放</span></div><div class="stage-desc">最初の本格的な関門。11Fから直接開始する場合はHP満タン・アイテムなしで出発。20Fのテンタクルを目指す。</div><div class="stage-reward">通常撃破 <b>魔素25</b>　シルバー <b>魔素175</b>　ボス撃破 <b>魔素125</b></div></button>
 </section>
 
 <section id="departScreen" class="screen meta-screen">
@@ -1589,6 +1589,209 @@ renderStage2V16();
 
 // Ensure old/debug saves with deepest 10F+ unlock the deep mission/stage consistently.
 if(Number(META.deepest||1)>=10&&!META.cleared10){META.cleared10=true;saveMeta();renderHome()}
+})();
+</script>
+
+
+<style>
+/* v1.7a Long Expedition / Inventory Cap */
+.battle-item-btn{padding:4px 6px;min-width:54px;font-size:7.5px}
+.battle-item-list{display:grid;gap:7px}
+.battle-item-row{border:1px solid #352b3f;border-radius:12px;background:#110e16;padding:9px 10px}
+.battle-item-row-top{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.battle-item-row-name{font-size:10px;font-weight:950}.battle-item-row-count{font-size:8px;color:#b8a9c4;white-space:nowrap}
+.battle-item-row-effect{font-size:8.5px;color:#b9abc3;line-height:1.5;margin-top:4px}
+.battle-item-use{margin-top:5px;font-size:8px;color:var(--gold);font-weight:850}
+.item-cap-note{padding:9px 10px;border:1px solid #4a3a56;border-radius:12px;background:#15101b;font-size:8.5px;line-height:1.5;color:#c6b8cf;margin-bottom:8px}
+.exchange-new{border-color:#765b88;background:linear-gradient(145deg,#24182e,#15101c)}
+.exchange-owned{display:grid;gap:6px;margin-top:8px}
+.exchange-owned button{width:100%;text-align:left;border:1px solid #382e42;border-radius:11px;background:#110e16;padding:8px 9px}
+.exchange-owned button b{display:flex;justify-content:space-between;gap:8px;font-size:9px}.exchange-owned button span{display:block;margin-top:3px;font-size:8px;color:#a99ab4;line-height:1.4}
+.segment-clear-card{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:8px}
+.segment-clear-stat{border:1px solid #3b3046;border-radius:12px;background:#110d17;padding:9px 6px;text-align:center;color:#a99ab4;font-size:8px}
+.segment-clear-stat b{display:block;color:#f4edf8;font-size:15px;margin-top:2px}
+</style>
+<script>
+/* =============================
+   v1.7a Long Expedition / Item Inventory
+   - Battle inventory viewer
+   - Item capacity 15 + replacement flow
+   - 10F -> 11F seamless continuation
+   ============================= */
+(function(){
+const ITEM_CAP_V17=15;
+const LIMITED_BATTLE_ITEMS_V17=new Set(['glossy_oil','neutralizer','purify_ofuda','numb_seal','emergency_evade']);
+
+// Keep displayed descriptions aligned with the mechanics introduced in v1.4a.
+const effectTextV17={
+  needle:'物理与ダメージ時、20%で【毒2】付与',
+  food:'5ターン目まで、ターン終了時に最大HPの2%回復',
+  supplier:'いずれかのスタックが消費されるたび、最大HPの1%回復',
+  backpack:'新たなアイテムを獲得するたび、最大HPの3%回復'
+};
+for(const [id,effect] of Object.entries(effectTextV17)){const it=itemById(id);if(it)it.effect=effect}
+
+function heldItemTotalV17(){return R?.items?Object.values(R.items).reduce((a,b)=>a+(Number(b)||0),0):0}
+window.heldItemTotalV17=heldItemTotalV17;
+
+// Defensive cap at the lowest acquisition layer. Normal acquisition goes through the request flow below.
+const baseAcquireItemV17=acquireItem;
+acquireItem=function(it){
+  if(!R||!it)return false;
+  if(heldItemTotalV17()>=ITEM_CAP_V17){toast(`アイテム上限 ${ITEM_CAP_V17}個です`);return false}
+  baseAcquireItemV17(it);
+  return true;
+};
+
+function discardRunItemV17(id){
+  if(!R?.items?.[id])return false;
+  R.items[id]--;
+  if(R.items[id]<=0)delete R.items[id];
+  // Capsule is a carried passive. Removing it also removes its max-HP bonus.
+  if(id==='capsule'){
+    R.maxHp=Math.max(1,R.maxHp-20);
+    R.hp=Math.min(R.hp,R.maxHp);
+    if(S){S.maxHp=Math.max(1,S.maxHp-20);S.hp=Math.min(S.hp,S.maxHp)}
+  }
+  return true;
+}
+
+function finishItemExchangeV17(discardId){
+  const x=window._pendingItemExchangeV17;if(!x)return;
+  if(!discardRunItemV17(discardId))return;
+  const dit=itemById(discardId);const acquired=acquireItem(x.item);
+  if(!acquired)return;
+  toast(`${dit?.name||'アイテム'}を手放し、${x.item.name}を獲得`);
+  window._pendingItemExchangeV17=null;
+  closeChoice();
+  advanceFloor();
+}
+window.finishItemExchangeV17=finishItemExchangeV17;
+
+function renderItemExchangeV17(){
+  const x=window._pendingItemExchangeV17;if(!x)return;
+  const it=x.item;
+  const owned=Object.keys(R.items).filter(id=>R.items[id]>0).sort((a,b)=>{
+    const rank={unique:0,rare:1,common:2};return (rank[itemById(a)?.rarity]??9)-(rank[itemById(b)?.rarity]??9)
+  });
+  const rows=owned.map(id=>{const o=itemById(id),n=R.items[id];return `<button onclick="exchangeDiscardV17('${id}')"><b><span>${o.icon} ${esc(o.name)}</span><span>×${n}</span></b><span>${esc(o.effect)}</span></button>`}).join('');
+  const cancel=x.source==='chest'
+    ? `<button class="secondary" onclick="returnToChestV17()">宝箱に戻る</button>`
+    : `<button class="secondary" onclick="declineDropV17()">新しいアイテムを諦める</button>`;
+  openChoice('アイテム所持上限',`所持できるアイテムは${ITEM_CAP_V17}個までです。1つ手放して交換できます。`,
+    `<div class="item-cap-note">現在 ${heldItemTotalV17()} / ${ITEM_CAP_V17}</div>`+
+    `<div class="item-card ${it.rarity} exchange-new"><div class="item-top"><span class="item-name"><span class="item-icon">${it.icon}</span>${esc(it.name)}</span><span class="rarity rar-${it.rarity}">${rarityLabel(it.rarity)}</span></div><div class="item-effect">${esc(it.effect)}</div></div>`+
+    `<div class="section-title" style="margin-top:10px">手放すアイテムを選択</div><div class="exchange-owned">${rows}</div>`,cancel);
+}
+window.renderItemExchangeV17=renderItemExchangeV17;
+
+function exchangeDiscardV17(id){
+  const it=itemById(id);if(!it)return;
+  if(it.rarity==='unique'){
+    openChoice('ユニークを手放しますか？',`${it.name}を手放すと、この探索では元に戻せません。`,
+      `<div class="item-card unique"><div class="item-top"><span class="item-name"><span class="item-icon">${it.icon}</span>${esc(it.name)}</span><span class="rarity rar-unique">ユニーク</span></div><div class="item-effect">${esc(it.effect)}</div></div>`,
+      `<button class="secondary" onclick="renderItemExchangeV17()">戻る</button><button class="primary" onclick="finishItemExchangeV17('${id}')">手放して交換</button>`);
+    return;
+  }
+  finishItemExchangeV17(id);
+}
+window.exchangeDiscardV17=exchangeDiscardV17;
+
+function returnToChestV17(){
+  const opts=window._chest||[];
+  window._pendingItemExchangeV17=null;
+  openChoice('宝箱',`1つ選んで獲得します。　所持 ${heldItemTotalV17()} / ${ITEM_CAP_V17}`,
+    opts.map((it,i)=>itemCard(it,i,`chooseChest(${i})`)).join(''));
+}
+window.returnToChestV17=returnToChestV17;
+function declineDropV17(){window._pendingItemExchangeV17=null;closeChoice();advanceFloor()}
+window.declineDropV17=declineDropV17;
+
+function requestItemAcquireV17(it,source){
+  if(heldItemTotalV17()<ITEM_CAP_V17){
+    if(acquireItem(it)){closeChoice();advanceFloor()}
+    return;
+  }
+  window._pendingItemExchangeV17={item:it,source};
+  renderItemExchangeV17();
+}
+window.requestItemAcquireV17=requestItemAcquireV17;
+
+// Replace the two acquisition entry points with the capacity-aware flow.
+chooseChest=function(i){const it=window._chest?.[i];if(it)requestItemAcquireV17(it,'chest')};
+takeDrop=function(){if(window._drop)requestItemAcquireV17(window._drop,'drop')};
+
+const baseOpenChestV17=openChest;
+openChest=function(){baseOpenChestV17();if(R)$('choiceText').textContent=`1つ選んで獲得します。　所持 ${heldItemTotalV17()} / ${ITEM_CAP_V17}`};
+
+// Inventory counters on the map.
+const baseRenderInventoryV17=renderInventory;
+renderInventory=function(){baseRenderInventoryV17();if(!R)return;const n=heldItemTotalV17();$('invSummary').textContent=n?`所持アイテム ${n} / ${ITEM_CAP_V17}`:`所持アイテムなし　0 / ${ITEM_CAP_V17}`};
+const baseRenderMapV17=renderMap;
+renderMap=function(){baseRenderMapV17();if(R&&$('itemCount'))$('itemCount').textContent=`ITEM ${heldItemTotalV17()}/${ITEM_CAP_V17}`};
+
+// Battle inventory viewer.
+(function injectBattleItemButtonV17(){
+  const box=document.querySelector('.battle-top-actions');if(!box||$('battleItemsBtn'))return;
+  const b=document.createElement('button');b.id='battleItemsBtn';b.className='speed-btn battle-item-btn';b.textContent='ITEM 0/15';b.onclick=openBattleItemsV17;box.insertBefore(b,box.firstChild);
+})();
+function openBattleItemsV17(){
+  if(!R)return;
+  const ids=Object.keys(R.items).filter(id=>R.items[id]>0);
+  const html=ids.length?`<div class="battle-item-list">${ids.map(id=>{
+    const it=itemById(id),n=R.items[id];let use='';
+    if(LIMITED_BATTLE_ITEMS_V17.has(id)&&S?.itemUses){const rem=Math.max(0,S.itemUses[id]||0);use=`<div class="battle-item-use">この戦闘：残り ${rem} / ${n}回</div>`}
+    return `<div class="battle-item-row"><div class="battle-item-row-top"><span class="battle-item-row-name rar-${it.rarity}">${it.icon} ${esc(it.name)}</span><span class="battle-item-row-count">×${n}</span></div><div class="battle-item-row-effect">${esc(it.effect)}</div>${use}</div>`
+  }).join('')}</div>`:`<div class="item-cap-note">所持アイテムはありません。</div>`;
+  openChoice('所持アイテム',`所持 ${heldItemTotalV17()} / ${ITEM_CAP_V17}`,html,`<button class="primary" onclick="closeChoice()">閉じる</button>`);
+}
+window.openBattleItemsV17=openBattleItemsV17;
+const baseRenderBattleV17=renderBattle;
+renderBattle=function(){baseRenderBattleV17();const b=$('battleItemsBtn');if(b){b.textContent=`ITEM ${heldItemTotalV17()}/${ITEM_CAP_V17}`;b.disabled=!R||!S||!!S.animating}};
+
+// 10F -> 11F seamless continuation.
+function unlockDeepAfter10V17(){
+  META.cleared10=true;META.deepest=Math.max(Number(META.deepest||1),10);saveMeta();
+}
+function openFloor10ChoiceV17(){
+  unlockDeepAfter10V17();
+  const items=heldItemTotalV17();
+  openChoice('10F踏破！','ポダルゲを撃破しました。このまま深層へ進むか、魔素を確定して帰還できます。',
+    `<div class="segment-clear-card"><div class="segment-clear-stat">HP<b>${R.hp} / ${R.maxHp}</b></div><div class="segment-clear-stat">アイテム<b>${items} / ${ITEM_CAP_V17}</b></div><div class="segment-clear-stat">仮獲得魔素<b>+${formatNum(R.pendingMana||0)}</b></div></div>`+
+    `<div class="info" style="margin-top:10px"><b>11Fへ進む</b><br>HP・アイテム・最大HP・探索中の攻撃力強化・軍師の眼鏡の持ち越し・仮獲得魔素をすべて保持します。戦闘内の状態異常や一時バフはリセットされます。</div>`,
+    `<button class="secondary" onclick="returnFrom10V17()">帰還する</button><button class="primary" onclick="continueTo11V17()">11Fへ進む</button>`);
+}
+function continueTo11V17(){
+  if(!R)return;
+  unlockDeepAfter10V17();closeChoice();
+  R.floor=11;R.continuedFrom10=true;S=null;choiceId=null;
+  generateNodes();renderMap();showScreen('mapScreen');
+  toast('11Fへ進みます。HP・アイテムを保持しました');
+}
+function returnFrom10V17(){if(!R)return;closeChoice();endRun(true,'10Fのポダルゲを撃破して帰還しました。')}
+window.continueTo11V17=continueTo11V17;window.returnFrom10V17=returnFrom10V17;
+
+// Final clearRun override: only the shallow boss opens the continuation decision.
+clearRun=function(){
+  if(!R)return;
+  R.hp=S?.hp??R.hp;
+  if(Number(R.floor||0)===10){openFloor10ChoiceV17();return}
+  endRun(true,'20Fのテンタクルを撃破しました。');
+};
+
+// Surface the new long-run rule on the departure confirmation.
+const baseRenderDepartV17=renderDepart;
+renderDepart=function(){
+  baseRenderDepartV17();
+  const info=document.querySelector('#departScreen .info');
+  if(info){
+    if((pendingStartFloor||1)<11)info.innerHTML='<b>探索ルール</b><br>HP・アイテム・探索中強化は探索開始時にリセット。10F踏破後は、その状態を保持したまま11Fへ続行できます。アイテム所持上限は15個です。';
+    else info.innerHTML='<b>探索ルール</b><br>11Fから直接開始する場合、HP満タン・アイテム0・探索中強化0から開始します。アイテム所持上限は15個です。';
+  }
+};
+
+// Refresh currently visible counters once on load.
+if(R){try{renderMap()}catch(e){}}
 })();
 </script>
 
