@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
 <meta name="theme-color" content="#120f19" />
-<title>魔物娘ローグライト v1.7b Exchange Confirm</title>
+<title>魔物娘ローグライト v1.7c Boss Rewards</title>
 <style>
 :root{
   --bg:#100d16;--panel:#1a1622;--panel2:#231d2e;--line:#3a3048;--text:#f8f2ff;--muted:#b9acc7;
@@ -1677,6 +1677,8 @@ function renderItemExchangeV17(){
   const rows=owned.map(id=>{const o=itemById(id),n=R.items[id];return `<button onclick="exchangeDiscardV17('${id}')"><b><span>${o.icon} ${esc(o.name)}</span><span>×${n}</span></b><span>${esc(o.effect)}</span></button>`}).join('');
   const cancel=x.source==='chest'
     ? `<button class="secondary" onclick="returnToChestV17()">宝箱に戻る</button>`
+    : x.source==='boss'
+    ? `<button class="secondary" onclick="returnToBossRewardV17c()">ボス報酬に戻る</button>`
     : `<button class="secondary" onclick="declineDropV17()">新しいアイテムを諦める</button>`;
   openChoice('アイテム所持上限',`所持できるアイテムは${ITEM_CAP_V17}個までです。1つ手放して交換できます。`,
     `<div class="item-cap-note">現在 ${heldItemTotalV17()} / ${ITEM_CAP_V17}</div>`+
@@ -1903,4 +1905,107 @@ window.renderItemExchangeV17=function(){
 };
 })();
 </script>
+
+<style>
+/* v1.7c Boss Reward */
+.boss-reward-note{margin:0 0 9px;padding:8px 10px;border:1px solid #5f4a6c;border-radius:12px;background:#1b1421;color:#cdbed6;font-size:8.5px;line-height:1.5}
+.boss-reward-note b{color:var(--gold)}
+</style>
+<script>
+/* =============================
+   v1.7c Boss Reward
+   - Every boss: 3-choice item reward
+   - Rarity per slot: Common 70 / Rare 28 / Unique 2
+   - Reward is resolved before segment-clear flow
+   ============================= */
+(function(){
+const baseClearRunV17c=clearRun;
+const baseAdvanceFloorV17c=advanceFloor;
+
+function rollBossRarityV17c(){
+  const x=Math.random()*100;
+  return x<70?'common':x<98?'rare':'unique';
+}
+function drawBossItemV17c(exclude=[]){
+  const preferred=rollBossRarityV17c();
+  let pool=availableItems(preferred,exclude);
+  if(!pool.length){
+    // Keep the fallback neutral instead of upgrading a failed roll.
+    for(const r of ['common','rare','unique']){
+      pool=availableItems(r,exclude);
+      if(pool.length)break;
+    }
+  }
+  if(!pool.length){
+    // availableItems() already applies party compatibility and unique ownership rules.
+    pool=['common','rare','unique'].flatMap(r=>availableItems(r,exclude));
+  }
+  return pool.length?pool[Math.floor(Math.random()*pool.length)]:null;
+}
+function makeBossRewardsV17c(){
+  const out=[],exclude=[];
+  for(let i=0;i<3;i++){
+    const it=drawBossItemV17c(exclude);
+    if(!it)break;
+    out.push(it);exclude.push(it.id);
+  }
+  return out;
+}
+function renderBossRewardV17c(){
+  if(!R)return;
+  if(!Array.isArray(R._bossRewardsV17c)||!R._bossRewardsV17c.length)R._bossRewardsV17c=makeBossRewardsV17c();
+  const opts=R._bossRewardsV17c;
+  const html=`<div class="boss-reward-note">ボス撃破報酬。各候補のレアリティは <b>COMMON 70% / RARE 28% / UNIQUE 2%</b> で抽選されます。</div>`+
+    opts.map((it,i)=>itemCard(it,i,`chooseBossRewardV17c(${i})`)).join('');
+  openChoice('ボス撃破報酬',`${S?.enemy?.name||'ボス'}を撃破。アイテムを1つ選んで獲得します。　所持 ${heldItemTotalV17()} / 15`,html,
+    `<button class="secondary" onclick="skipBossRewardV17c()">受け取らず進む</button>`);
+}
+function finishBossRewardV17c(){
+  if(!R)return;
+  R._bossRewardResolvingV17c=false;
+  R._bossRewardClaimedFloorV17c=Number(R.floor||0);
+  R._bossRewardsV17c=null;
+  window._pendingItemExchangeV17=null;
+  closeChoice();
+  baseClearRunV17c();
+}
+window.chooseBossRewardV17c=function(i){
+  if(!R)return;
+  const it=R._bossRewardsV17c?.[i];if(!it)return;
+  R._bossRewardResolvingV17c=true;
+  window.requestItemAcquireV17(it,'boss');
+};
+window.returnToBossRewardV17c=function(){
+  if(!R)return;
+  window._pendingItemExchangeV17=null;
+  renderBossRewardV17c();
+};
+window.skipBossRewardV17c=function(){finishBossRewardV17c()};
+
+// Capacity-aware acquisition normally advances the floor after obtaining/declining an item.
+// During a boss reward, route that completion into the existing segment-clear flow instead.
+advanceFloor=function(){
+  if(R?._bossRewardResolvingV17c){finishBossRewardV17c();return}
+  baseAdvanceFloorV17c();
+};
+
+clearRun=function(){
+  if(!R)return;
+  const floor=Number(R.floor||0);
+  if((floor===10||floor===20)&&R._bossRewardClaimedFloorV17c!==floor){
+    R._bossRewardResolvingV17c=false;
+    R._bossRewardsV17c=makeBossRewardsV17c();
+    renderBossRewardV17c();
+    return;
+  }
+  baseClearRunV17c();
+};
+
+// Surface the new reward in stage selection without changing mana values.
+for(const el of document.querySelectorAll('#stageSelectScreen .stage-reward')){
+  if(!el.textContent.includes('ボス報酬'))el.insertAdjacentHTML('beforeend','<br>ボス報酬 <b>アイテム3択</b>（70 / 28 / 2）');
+}
+})();
+</script>
+
 </body></html>
