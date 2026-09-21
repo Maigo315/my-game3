@@ -229,7 +229,7 @@ body{min-height:100dvh}button{font:inherit;color:inherit}.screen{display:none;mi
 <section id="stageSelectScreen" class="screen meta-screen">
   <div class="meta-top"><div><div class="meta-title">探索</div><div class="meta-caption">開始する階層帯を選択</div></div><button id="stageBack" class="meta-back">ホーム</button></div>
   <button id="stage1" class="stage-card"><div class="stage-topline"><span class="stage-floor">1F ～ 10F</span><span class="stage-status">探索可能</span></div><div class="stage-desc">浅層。Tier1でも構築と判断次第で踏破可能。10Fにはポダルゲが待つ。</div><div class="stage-reward">通常撃破 <b>魔素10</b>　ボス撃破 <b>魔素50</b></div></button>
-  <div class="stage-card locked"><div class="stage-topline"><span class="stage-floor">11F ～ 20F</span><span class="stage-status">準備中</span></div><div class="stage-desc">最初の本格的な関門。今後のアップデートで追加予定。</div></div>
+  <button id="stage2" class="stage-card locked"><div class="stage-topline"><span class="stage-floor">11F ～ 20F</span><span class="stage-status" id="stage2Status">10F踏破で解放</span></div><div class="stage-desc">最初の本格的な関門。Tier育成とアイテム構築を活かして、20Fのテンタクルを目指す。</div><div class="stage-reward">通常撃破 <b>魔素25</b>　シルバー <b>魔素175</b>　ボス撃破 <b>魔素125</b></div></button>
 </section>
 
 <section id="departScreen" class="screen meta-screen">
@@ -269,7 +269,7 @@ body{min-height:100dvh}button{font:inherit;color:inherit}.screen{display:none;mi
     <div class="debug-panel"><h3>魔素</h3><p>強化画面やTierアップ演出の確認用。</p><div class="debug-actions"><button class="debug-btn good" onclick="debugAddMana(10000)">+10,000</button><button class="debug-btn good" onclick="debugAddMana(1000000)">+1,000,000</button></div></div>
     <div class="debug-panel"><h3>ミッション</h3><p>通知・受け取り・仲間加入演出の確認用。</p><div class="debug-actions"><button class="debug-btn warn" onclick="debugMakeMissionsClaimable()">5体を受取可能にする</button><button class="debug-btn" onclick="debugResetMissionProgress()">進捗だけ0にする</button><button class="debug-btn danger" style="grid-column:1/-1" onclick="debugResetMissionState()">初期ミッション状態に戻す</button></div></div>
     <div class="debug-panel"><h3>仲間</h3><p>現在実装済みの魔物娘とTier節目をまとめて確認。</p><div class="debug-actions"><button class="debug-btn good" onclick="debugUnlockAllCards()">全仲間解放</button><button class="debug-btn" onclick="debugSetOwnedTier(1)">所持をTier1</button><button class="debug-btn" onclick="debugSetOwnedTier(5)">所持をTier5</button><button class="debug-btn" onclick="debugSetOwnedTier(10)">所持をTier10</button><button class="debug-btn" onclick="debugSetOwnedTier(15)">所持をTier15</button></div></div>
-    <div class="debug-panel"><h3>最深到達階層</h3><p>ホーム表示などの確認用。探索コンテンツ自体はまだ1〜10Fのみ。</p><div class="debug-actions"><button class="debug-btn" onclick="debugSetDeepest(1)">1F</button><button class="debug-btn" onclick="debugSetDeepest(10)">10F</button><button class="debug-btn" onclick="debugSetDeepest(20)">20F</button><button class="debug-btn" onclick="debugSetDeepest(100)">100F</button></div></div>
+    <div class="debug-panel"><h3>最深到達階層</h3><p>ホーム表示・探索帯解放などの確認用。現在は1〜20Fを実装。</p><div class="debug-actions"><button class="debug-btn" onclick="debugSetDeepest(1)">1F</button><button class="debug-btn" onclick="debugSetDeepest(10)">10F</button><button class="debug-btn" onclick="debugSetDeepest(20)">20F</button><button class="debug-btn" onclick="debugSetDeepest(100)">100F</button></div></div>
   </div>
 </section>
 
@@ -915,7 +915,7 @@ battleVictory=function(){R.stats.kills++;const reward=S.enemy.manaReward??(S.ene
 function debugStartEnemyBattle(enemyId){const e=ENEMIES[enemyId];if(!e)return;let party=(META.party||[]).filter(id=>META.owned.includes(id)).slice(0,3);for(const id of META.owned){if(party.length>=3)break;if(!party.includes(id))party.push(id)}if(party.length<3){toast('模擬戦には3体の仲間が必要です');return}let baseMax=party.reduce((sum,id)=>sum+getCardStats(id).hp,0);if(party.includes('golem')&&hasTier('golem',15))baseMax=Math.ceil(baseMax*1.05);R={debugBattle:true,floor:11,party:[...party],hp:baseMax,maxHp:baseMax,items:{},atkBonus:Object.fromEntries(party.map(id=>[id,0])),nodes:[],pendingMana:0,metaCommitted:true,stats:{battles:0,kills:0,chests:0,rests:0,items:0,turns:0,damage:0,taken:0,healed:0},started:Date.now()};startBattle(enemyId)}
 window.debugStartEnemyBattle=debugStartEnemyBattle;
 
-const debugEnemyPanel=document.createElement('div');debugEnemyPanel.className='debug-panel';debugEnemyPanel.innerHTML=`<h3>11～20F 敵模擬戦</h3><p>現在の編成・Tierで新規敵と直接戦います。模擬戦の魔素・戦績はセーブされません。</p><div class="debug-actions">${['poison_slime','bee','lamia','slug','ghost','silver_slime','tentacle'].map(id=>`<button class="debug-btn ${id==='tentacle'?'danger':''}" onclick="debugStartEnemyBattle('${id}')">${esc(ENEMIES[id].name)}</button>`).join('')}</div><p style="margin-top:8px">シルバースライムの「逃げる」は仮設定で各ターン20%。撃破想定報酬は通常20、シルバー170、テンタクル100魔素。</p>`;document.querySelector('#debugScreen .debug-panels')?.appendChild(debugEnemyPanel);
+const debugEnemyPanel=document.createElement('div');debugEnemyPanel.className='debug-panel';debugEnemyPanel.innerHTML=`<h3>11～20F 敵模擬戦</h3><p>現在の編成・Tierで新規敵と直接戦います。模擬戦の魔素・戦績はセーブされません。</p><div class="debug-actions">${['poison_slime','bee','lamia','slug','ghost','silver_slime','tentacle'].map(id=>`<button class="debug-btn ${id==='tentacle'?'danger':''}" onclick="debugStartEnemyBattle('${id}')">${esc(ENEMIES[id].name)}</button>`).join('')}</div><p style="margin-top:8px">シルバースライムの「逃げる」は仮設定で各ターン20%。撃破想定報酬は通常25、シルバー175、テンタクル125魔素。</p>`;document.querySelector('#debugScreen .debug-panels')?.appendChild(debugEnemyPanel);
 
 const retireV12=retire;
 retire=function(){if(R?.debugBattle){leaveDebugBattle('模擬戦を終了');return}return retireV12()};
@@ -1446,6 +1446,149 @@ const dbgBtns=[...document.querySelectorAll('#debugScreen .debug-btn')];for(cons
 const baseDebugStartEnemyBattleV15=window.debugStartEnemyBattle;
 window.debugStartEnemyBattle=function(enemyId){baseDebugStartEnemyBattleV15(enemyId);if(R?.debugBattle&&R.party.includes('lamia')&&hasTier('lamia',15)){const old=R.maxHp;R.maxHp=Math.ceil(R.maxHp*1.05);const d=R.maxHp-old;R.hp+=d;if(S){S.maxHp=R.maxHp;S.hp+=d;renderBattle()}}};
 
+})();
+</script>
+
+
+<script>
+/* =============================
+   v1.6a 11F-20F Expedition
+   - 10F clear unlocks 11F start
+   - deep enemy table (Silver Slime 8%)
+   - 20F Tentacle boss
+   - deep mana rewards 25 / 175 / 125
+   ============================= */
+(function(){
+const DEEP_REGULAR_IDS_V16=['poison_slime','bee','lamia','slug','ghost'];
+const DEEP_ALL_IDS_V16=[...DEEP_REGULAR_IDS_V16,'silver_slime'];
+const DEEP_WEIGHTS_V16={poison_slime:18.4,bee:18.4,lamia:18.4,slug:18.4,ghost:18.4,silver_slime:8};
+
+// Reward economy for 11F-20F.
+for(const id of DEEP_REGULAR_IDS_V16)if(ENEMIES[id])ENEMIES[id].manaReward=25;
+if(ENEMIES.silver_slime)ENEMIES.silver_slime.manaReward=175;
+if(ENEMIES.tentacle)ENEMIES.tentacle.manaReward=125;
+
+function isDeepRunV16(){return !!R && Number(R.floor||0)>=11}
+function bandStartV16(){return isDeepRunV16()?11:1}
+function bandEndV16(){return isDeepRunV16()?20:10}
+function rollWeightedV16(ids,weights){
+  const total=ids.reduce((s,id)=>s+(weights[id]||0),0);
+  if(total<=0)return ids[Math.floor(Math.random()*ids.length)];
+  let x=Math.random()*total;
+  for(const id of ids){x-=weights[id]||0;if(x<=0)return id}
+  return ids[ids.length-1];
+}
+function rollDeepEnemyV16(avoid=[]){
+  let ids=DEEP_ALL_IDS_V16.filter(id=>ENEMIES[id]&&!avoid.includes(id));
+  if(!ids.length)ids=DEEP_ALL_IDS_V16.filter(id=>ENEMIES[id]);
+  return rollWeightedV16(ids,DEEP_WEIGHTS_V16);
+}
+
+// Stage-specific enemy selection. Shallow remains unchanged; deep uses 8% Silver Slime.
+makeBattleNode=function(avoid=[]){
+  if(isDeepRunV16())return {kind:'battle',enemy:rollDeepEnemyV16(avoid)};
+  const shallow=['slime','harpy','goblin','rabbit','arachne'];
+  let keys=shallow.filter(k=>ENEMIES[k]&&!avoid.includes(k));
+  if(!keys.length)keys=shallow.filter(k=>ENEMIES[k]);
+  return {kind:'battle',enemy:keys[Math.floor(Math.random()*keys.length)]};
+};
+
+generateNodes=function(){
+  if(!R)return;
+  if(R.floor===10){R.nodes=[{kind:'boss',enemy:'podarge'}];return}
+  if(R.floor===20){R.nodes=[{kind:'boss',enemy:'tentacle'}];return}
+  const nodes=[makeBattleNode()],usedNon=new Set();
+  for(let i=0;i<2;i++){
+    const pool=[{k:'battle',w:40},{k:'chest',w:30},{k:'rest',w:30}].filter(x=>x.k==='battle'||!usedNon.has(x.k));
+    let total=pool.reduce((s,x)=>s+x.w,0),v=Math.random()*total,pick='battle';
+    for(const x of pool){v-=x.w;if(v<=0){pick=x.k;break}}
+    if(pick==='battle')nodes.push(makeBattleNode(nodes.filter(n=>n.kind==='battle').map(n=>n.enemy)));
+    else{nodes.push({kind:pick});usedNon.add(pick)}
+  }
+  R.nodes=shuffle(nodes);
+};
+
+const baseRenderMapV16=renderMap;
+renderMap=function(){
+  baseRenderMapV16();
+  if(!R)return;
+  const start=bandStartV16(),end=bandEndV16(),index=Math.max(0,R.floor-start);
+  $('floorText').textContent=`${R.floor}F / ${end}F`;
+  $('floorDots').innerHTML=Array.from({length:10},(_,i)=>`<i class="dot ${i<index?'done':''} ${i===9?'boss':''}"></i>`).join('');
+};
+
+advanceFloor=function(){
+  if(!R)return;
+  const end=bandEndV16();
+  R.floor++;
+  if(R.floor>end){clearRun();return}
+  generateNodes();renderMap();showScreen('mapScreen');
+};
+
+clearRun=function(){
+  if(!R)return;
+  R.hp=S?.hp??R.hp;
+  const end=bandEndV16();
+  endRun(true,end===20?'20Fのテンタクルを撃破しました。':'10Fのポダルゲを撃破しました。');
+};
+
+// Commit the actual reached floor rather than hard-coding 10F.
+commitRunMeta=function(win){
+  if(!R||R.metaCommitted)return;
+  R.metaCommitted=true;
+  META.mana+=(R.pendingMana||0);
+  const end=bandEndV16();
+  const reached=win?end:Math.max(bandStartV16(),Math.min(end,Number(R.floor||bandStartV16())));
+  META.deepest=Math.max(Number(META.deepest||1),reached);
+  if(end===10&&win)META.cleared10=true;
+  if(end===20&&win)META.cleared20=true;
+  META.party=[...R.party];
+  saveMeta();
+};
+
+const baseEndRunV16=endRun;
+endRun=function(win,reason){
+  if(!R)return;
+  const end=bandEndV16();
+  const reached=win?end:Math.max(bandStartV16(),Math.min(end,Number(R.floor||bandStartV16())));
+  baseEndRunV16(win,reason);
+  const retired=String(reason).includes('リタイア');
+  $('fullResultTitle').textContent=win?`${end}F 踏破！`:retired?'帰還':'探索終了';
+  $('fullResultFloor').textContent=`到達 ${reached}F　HP ${R.hp} / ${R.maxHp}`;
+};
+
+const baseRenderDepartV16=renderDepart;
+renderDepart=function(){
+  baseRenderDepartV16();
+  $('departFloor').textContent=(pendingStartFloor||1)>=11?'11F ～ 20F':'1F ～ 10F';
+};
+
+function renderStage2V16(){
+  const b=$('stage2');if(!b)return;
+  const unlocked=!!META.cleared10||Number(META.deepest||1)>=10;
+  if(unlocked){
+    META.cleared10=true;
+    b.classList.remove('locked');
+    $('stage2Status').textContent='探索可能';
+    b.onclick=()=>{pendingStartFloor=11;renderDepart();showScreen('departScreen')};
+  }else{
+    b.classList.add('locked');
+    $('stage2Status').textContent='10F踏破で解放';
+    b.onclick=()=>toast('10Fを踏破すると解放されます');
+  }
+}
+
+const baseOpenStageSelectV16=openStageSelect;
+openStageSelect=function(){renderStage2V16();baseOpenStageSelectV16()};
+
+// Rebind navigation because earlier onclick assignments keep the old function object.
+$('homeExplore').onclick=openStageSelect;
+// Keep the shallow button explicit so selecting it always resets the start floor.
+$('stage1').onclick=()=>{pendingStartFloor=1;renderDepart();showScreen('departScreen')};
+renderStage2V16();
+
+// Ensure old/debug saves with deepest 10F+ unlock the deep mission/stage consistently.
+if(Number(META.deepest||1)>=10&&!META.cleared10){META.cleared10=true;saveMeta();renderHome()}
 })();
 </script>
 
