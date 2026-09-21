@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
 <meta name="theme-color" content="#120f19" />
-<title>魔物娘ローグライト v1.7a Long Expedition</title>
+<title>魔物娘ローグライト v1.7b Exchange Confirm</title>
 <style>
 :root{
   --bg:#100d16;--panel:#1a1622;--panel2:#231d2e;--line:#3a3048;--text:#f8f2ff;--muted:#b9acc7;
@@ -1795,4 +1795,112 @@ if(R){try{renderMap()}catch(e){}}
 })();
 </script>
 
+
+
+<style>
+/* v1.7b Item Exchange Confirmation */
+.exchange-confirm-wrap{display:grid;gap:8px}
+.exchange-confirm-label{font-size:8px;font-weight:1000;letter-spacing:.12em;color:#9f90aa;margin:2px 2px 4px}
+.exchange-confirm-arrow{text-align:center;font-size:18px;line-height:1;color:#9b83b0;height:18px}
+.exchange-confirm-card{border:1px solid #3c3047;border-radius:14px;background:#120e18;padding:10px}
+.exchange-confirm-card.give{border-color:#644353;background:linear-gradient(145deg,#24151d,#120e16)}
+.exchange-confirm-card.get{border-color:#655176;background:linear-gradient(145deg,#21172a,#15111d)}
+.exchange-confirm-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.exchange-confirm-name{font-size:12px;font-weight:950}
+.exchange-confirm-count{font-size:8px;color:#b8a9c4;white-space:nowrap}
+.exchange-confirm-effect{margin-top:5px;font-size:9px;line-height:1.5;color:#c8bad2}
+.exchange-confirm-impact{margin-top:8px;border:1px solid #4d3b54;border-radius:11px;background:#100c15;padding:8px 9px;font-size:8.5px;line-height:1.5;color:#d7c8df}
+.exchange-confirm-impact b{color:var(--gold)}
+.exchange-skip-box{display:flex;align-items:flex-start;gap:8px;margin-top:10px;padding:9px 10px;border:1px solid #3c3146;border-radius:11px;background:#141019;color:#c5b6cf;font-size:8.5px;line-height:1.45;cursor:pointer}
+.exchange-skip-box input{margin:2px 0 0;accent-color:#b78cff;width:16px;height:16px;flex:0 0 auto}
+.exchange-skip-note{margin-top:7px;font-size:8px;color:#9c8da8;line-height:1.45}
+.exchange-skip-active{margin:8px 0 0;padding:7px 9px;border:1px solid #4d4058;border-radius:10px;background:#15111b;font-size:8px;color:#bcaec6;line-height:1.45}
+</style>
+<script>
+/* =============================
+   v1.7b Item Exchange Confirmation
+   - Confirm all discards with detail comparison
+   - Optional skip for common/rare during current expedition
+   - Unique items always confirm
+   ============================= */
+(function(){
+function exchangeItemCardV17b(it,beforeCount,afterCount,mode){
+  if(!it)return '';
+  const label=mode==='give'?'手放す':'入手する';
+  const countText=`所持 ${beforeCount} → ${afterCount}`;
+  return `<div><div class="exchange-confirm-label">${label}</div><div class="exchange-confirm-card ${mode}"><div class="exchange-confirm-top"><span class="exchange-confirm-name rar-${it.rarity}">${it.icon} ${esc(it.name)}</span><span class="rarity rar-${it.rarity}">${rarityLabel(it.rarity)}</span></div><div class="exchange-confirm-effect">${esc(it.effect)}</div><div class="exchange-confirm-count" style="margin-top:5px">${countText}</div></div></div>`;
+}
+function exchangeImpactV17b(discardId,newItem){
+  if(!R)return '';
+  const same=discardId===newItem?.id;
+  const dCount=Number(R.items?.[discardId]||0),nCount=Number(R.items?.[newItem?.id]||0);
+  const lines=[];
+  if(same){
+    lines.push(`<b>${esc(newItem.name)}</b> の最終所持数は ×${dCount} のままです。`);
+  }
+  const losesCapsule=discardId==='capsule';
+  const gainsCapsule=newItem?.id==='capsule';
+  if(losesCapsule||gainsCapsule){
+    const afterDiscardMax=Math.max(1,R.maxHp-(losesCapsule?20:0));
+    const afterHp=Math.min(R.hp,afterDiscardMax);
+    const finalMax=afterDiscardMax+(gainsCapsule?20:0);
+    const hpText=afterHp!==R.hp?` / HP ${R.hp} → ${afterHp}`:'';
+    lines.push(`交換後の最大HP：<b>${R.maxHp} → ${finalMax}</b>${hpText}`);
+    if(losesCapsule&&gainsCapsule&&R.hp>afterDiscardMax)lines.push('※同じエナジーカプセルとの交換でも、一度手放すため現在HPは新しい上限まで減少します。');
+  }
+  if(!lines.length)return '';
+  return `<div class="exchange-confirm-impact">${lines.join('<br>')}</div>`;
+}
+function showExchangeConfirmV17b(id){
+  const x=window._pendingItemExchangeV17;if(!x||!R)return;
+  const out=itemById(id),incoming=x.item;if(!out||!incoming)return;
+  const isUnique=out.rarity==='unique';
+  const outCount=Number(R.items?.[id]||0),inCount=Number(R.items?.[incoming.id]||0);
+  const same=id===incoming.id;
+  const incomingBefore=Math.max(0,inCount-(same?1:0));
+  const incomingAfter=incomingBefore+1;
+  const compare=`<div class="exchange-confirm-wrap">${exchangeItemCardV17b(out,outCount,Math.max(0,outCount-1),'give')}<div class="exchange-confirm-arrow">↓</div>${exchangeItemCardV17b(incoming,incomingBefore,incomingAfter,'get')}</div>${exchangeImpactV17b(id,incoming)}`;
+  const skip=isUnique
+    ? `<div class="exchange-skip-note">ユニークアイテムは確認省略中でも必ず確認します。</div>`
+    : `<label class="exchange-skip-box"><input id="exchangeSkipConfirmV17b" type="checkbox"><span>この探索中は、コモン・レアの廃棄確認を表示しない<br><span style="color:#93859e">※ユニークは常に確認します。</span></span></label>`;
+  openChoice('交換内容を確認',`「${out.name}」を手放して「${incoming.name}」を獲得します。`,compare+skip,
+    `<button class="secondary" onclick="renderItemExchangeV17()">戻る</button><button class="primary" onclick="confirmExchangeV17b('${id}')">手放して交換</button>`);
+}
+window.showExchangeConfirmV17b=showExchangeConfirmV17b;
+
+window.confirmExchangeV17b=function(id){
+  if(!R)return;
+  const it=itemById(id);if(!it)return;
+  if(it.rarity!=='unique'){
+    const cb=document.getElementById('exchangeSkipConfirmV17b');
+    if(cb?.checked)R.skipDiscardConfirmV17b=true;
+  }
+  window.finishItemExchangeV17(id);
+};
+
+// Inline exchange list buttons resolve this global function.
+window.exchangeDiscardV17=function(id){
+  const it=itemById(id);if(!it||!R)return;
+  if(it.rarity!=='unique'&&R.skipDiscardConfirmV17b){
+    window.finishItemExchangeV17(id);
+    return;
+  }
+  showExchangeConfirmV17b(id);
+};
+
+// Add a small status note when confirmations are being skipped.
+const baseRenderItemExchangeV17b=window.renderItemExchangeV17;
+window.renderItemExchangeV17=function(){
+  baseRenderItemExchangeV17b();
+  if(!R?.skipDiscardConfirmV17b)return;
+  const list=document.querySelector('#choiceList .exchange-owned');
+  if(list&&!document.getElementById('exchangeSkipActiveV17b')){
+    const note=document.createElement('div');
+    note.id='exchangeSkipActiveV17b';note.className='exchange-skip-active';
+    note.innerHTML='この探索中はコモン・レアの廃棄確認を省略中です。ユニークは引き続き確認します。';
+    list.parentNode.insertBefore(note,list);
+  }
+};
+})();
+</script>
 </body></html>
