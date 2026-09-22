@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
 <meta name="theme-color" content="#120f19" />
-<title>魔物娘ローグライト v1.9a 21-30F</title>
+<title>魔物娘ローグライト v1.9b Status Balance</title>
 <style>
 :root{
   --bg:#100d16;--panel:#1a1622;--panel2:#231d2e;--line:#3a3048;--text:#f8f2ff;--muted:#b9acc7;
@@ -834,7 +834,7 @@ Object.assign(ENEMIES,{
   {name:'一刺し',kind:'damagePoison',type:'physical',damage:23,chance:20,poisonTurns:2,desc:'23物理ダメージ。20%で【毒2】'},
   {name:'テン上げ',kind:'hype',damageUp:5,evadeUp:8,desc:'与ダメージ+5、回避率+8.0%（重複しない）'}]},
  lamia:{id:'lamia',name:'ラミア',hp:185,image:'enemy_lamia',stage:2,manaReward:20,actionMode:'cycle',portraitScale:1.05,portraitOffsetY:-2,actions:[
-  {name:'ヘビィスマッシュ',kind:'damageDisable',type:'physical',damage:27,chance:50,disableTurns:1,desc:'27物理ダメージ。50%で【ショック1】'},
+  {name:'ヘビィスマッシュ',kind:'damageDisable',type:'physical',damage:27,chance:50,disableTurns:2,desc:'27物理ダメージ。50%で【ショック2】'},
   {name:'防御',kind:'guard',desc:'このターン、被ダメージ半減'},
   {name:'攻撃',kind:'damage',type:'physical',damage:23,desc:'23物理ダメージ'},
   {name:'ラミアロール',kind:'damage',type:'pleasure',damage:21,desc:'21快楽ダメージ'}]},
@@ -871,7 +871,7 @@ incomingFlat=function(type){return type==='physical'?2*itemCount('skin'):type===
 function randomStep(min,max,step=10){const count=Math.floor((max-min)/step)+1;return min+Math.floor(Math.random()*count)*step}
 function partyHasAnyStatus(){return !!(S.status.poisonTurns||S.status.charm||S.status.curse||S.status.shock||S.status.seal||S.status.disableTurns)}
 function chooseDisabledAlly(){if(!S?.party?.length)return null;return S.party[Math.floor(Math.random()*S.party.length)].id}
-function applyDisableTurns(turns,label){const resist=statusResist();if(resist&&rnd(resist)){addLog(`${label}：状態異常耐性${resist}%で【ショック】を無効化。`,'good');fxPartyRes('RESIST','info');return false}S.status.disableTurns=Math.max(S.status.disableTurns||0,turns);S.status.disabledId=chooseDisabledAlly();S.status.disableAppliedTurn=S.turn;const c=S.party.find(x=>x.id===S.status.disabledId);addLog(`${label}：${c?.name||'味方'}に【ショック${turns}】。選択・待機不能。`,'bad');fxCard(`ショック ${turns}`,'bad',S.status.disabledId);checkArachneTrigger();return true}
+function applyDisableTurns(turns,label){const resist=statusResist();if(resist&&rnd(resist)){addLog(`${label}：状態異常耐性${resist}%で【ショック】を無効化。`,'good');fxPartyRes('RESIST','info');return false}const active=(S.status.disableTurns||0)>0&&!!S.status.disabledId;S.status.disableTurns=Math.max(S.status.disableTurns||0,turns);if(!active)S.status.disabledId=chooseDisabledAlly();const c=S.party.find(x=>x.id===S.status.disabledId);addLog(`${label}：${c?.name||'味方'}に【ショック${turns}】。選択・待機不能。`,'bad');fxCard(`ショック ${turns}`,'bad',S.status.disabledId);checkArachneTrigger();return true}
 
 checkArachneTrigger=function(){if(inParty('arachne')&&!S.arachneTriggered&&(S.status.poisonTurns>0||S.status.charm>0||S.status.curse>0||S.status.shock>0||S.status.seal||S.status.disableTurns>0)){S.arachneTriggered=true;S.res.nature+=3;addLog(`アラクネ：自然の力+3 → ${S.res.nature}`,'good');fxPartyRes('自然 +3','resup')}};
 
@@ -895,7 +895,7 @@ function enemyEscape(){S.ended=true;S.won=false;addLog(`${S.enemy.name}は逃げ
 
 runEnemy=function(){if(S.ended)return;const a=S.enemy.intent;if(!a)return;if(S.skipEnemy){addLog(`${S.enemy.name}の行動はスキップされた。`,'good');return}if(S.enemy.status.shock>0&&rnd(S.enemy.status.shock)){addLog(`${S.enemy.name}は【感電】${S.enemy.status.shock}%で行動キャンセル！`,'good');return}S.enemy.lastAction=a.id||a.name;const label=`${S.enemy.name}「${a.name}」`;switch(a.kind){case'damage':for(let i=0;i<(a.hits||1)&&!S.ended;i++)damageParty(a.damage,a.type,`${label}${a.hits?` ${i+1}/${a.hits}`:''}`);break;case'damageStatus':damageParty(a.damage,a.type,label);if(!S.ended)applyPartyPercent(a.status,a.amount,label);break;case'heal':{const before=S.enemy.hp;S.enemy.hp=Math.min(S.enemy.maxHp,S.enemy.hp+a.heal);const v=S.enemy.hp-before;addLog(`${label}：HP ${v}回復`,'good');if(v>0)fxEnemy(`+${v}`,'heal');break}case'none':addLog(`${S.enemy.name}は様子を見ている。`,'note');break;case'dance':S.enemy.flatDamage+=2;S.enemy.evadeBuffTurns=3;addLog(`${label}：与ダメージ+2、3ターン回避+10%`,'bad');fxEnemy('与ダメ +2','bad',{small:true,y:'62%'});fxEnemy('回避 +10%','status',{small:true,y:'70%'});break;case'lucky':S.enemy.crit=Math.min(50,S.enemy.crit+5);S.enemy.evade=Math.min(50,S.enemy.evade+5);addLog(`${label}：会心${S.enemy.crit}%・回避${S.enemy.evade}%`,'bad');fxEnemy('会心/回避 UP','status',{small:true,y:'66%'});break;case'poisonBite':damageParty(a.damage,a.type,label);if(!S.ended&&rnd(40))applyPartyPoison(3,label);break;case'seal':damageParty(a.damage,a.type,label);if(!S.ended)applySeal(2,label);break;case'wind':damageParty(a.damage,a.type,`${S.enemy.name}「ウィンド」`);if(!S.ended){S.enemy.windTriggered=true;S.enemy.windPending=false;S.enemy.dodge100Turns=1;addLog(`ポダルゲ：次のプレイヤーターン、回避率100%！`,'bad');fxEnemy('回避 100%','status',{small:true,y:'68%'})}break;case'damagePoison':damageParty(a.damage,a.type,label);if(!S.ended&&rnd(a.chance))applyPartyPoison(a.poisonTurns,label);break;case'poison':if(rnd(a.chance??100))applyPartyPoison(a.poisonTurns,label);else addLog(`${label}：毒付与に失敗。`,'note');break;case'guard':addLog(`${label}：このターンの被ダメージを半減した。`,'note');break;case'healCleanse':{const before=S.enemy.hp;S.enemy.hp=Math.min(S.enemy.maxHp,S.enemy.hp+a.heal);const v=S.enemy.hp-before;addLog(`${label}：HP ${v}回復`,'good');if(v>0)fxEnemy(`+${v}`,'heal');clearEnemyStatuses(label);break}case'hype':if(S.enemy.hypeActive){addLog(`${label}：すでにテン上げ中。効果は重複しない。`,'note');fxEnemy('テン上げ中','info',{small:true,y:'66%'})}else{S.enemy.hypeActive=true;S.enemy.flatDamage+=a.damageUp;S.enemy.evade=clamp(S.enemy.evade+a.evadeUp,0,100);addLog(`${label}：与ダメージ+${a.damageUp}、回避率+${a.evadeUp}% → 回避${S.enemy.evade}%`,'bad');fxEnemy(`与ダメ +${a.damageUp}`,'bad',{small:true,y:'62%'});fxEnemy(`回避 +${a.evadeUp}%`,'status',{small:true,y:'70%'})}break;case'damageDisable':damageParty(a.damage,a.type,label);if(!S.ended&&rnd(a.chance))applyDisableTurns(a.disableTurns,label);break;case'pleasureVuln':damageParty(a.damage,a.type,label);if(!S.ended){S.pleasureTakenFlat=(S.pleasureTakenFlat||0)+a.vulnUp;addLog(`${label}：快楽被ダメージ+${a.vulnUp} → +${S.pleasureTakenFlat}`,'bad');fxPartyRes(`快楽被ダメ +${S.pleasureTakenFlat}`,'bad')}break;case'clearBuffOrStack':removeRandomBuffOrStack(label);break;case'randomStatus':applyPartyPercent(a.status,randomStep(a.min,a.max,a.step),label);break;case'possess':{const c=S.party[Math.floor(Math.random()*S.party.length)];damageParty(c.currentAtk,'neutral',`${label}（${c.name} ATK ${c.currentAtk}）`);break}case'preemptiveFlash':damageParty(a.damage,'neutral',label);if(!S.ended&&rnd(50)){const waits=S.party.filter(c=>c.id!==S.currentChosenId);if(waits.length){const c=waits[Math.floor(Math.random()*waits.length)];S.disabledWaitId=c.id;addLog(`${label}：${c.name}の「待機」を無効化。`,'bad');fxCard('待機無効','bad',c.id)}}break;case'escape':enemyEscape();break;case'conditionalPleasure':damageParty(partyHasAnyStatus()?a.statusDamage:a.damage,'pleasure',label);break;case'cursePoison':applyPartyPercent('curse',randomStep(a.curseMin,a.curseMax,a.curseStep),label);if(!S.ended&&rnd(a.poisonChance))applyPartyPoison(a.poisonTurns,label);break;case'multiPoison':for(let i=0;i<a.hits&&!S.ended;i++){damageParty(a.damage,a.type,`${label} ${i+1}/${a.hits}`);if(!S.ended&&rnd(a.chance))applyPartyPoison(a.poisonTurns,`${label} ${i+1}/${a.hits}`)}break;case'erosion':damageParty(a.damage,a.type,label);if(!S.ended&&removeRandomStack(label)){S.enemy.flatDamage+=3;addLog(`${S.enemy.name}：与ダメージ+3 → +${S.enemy.flatDamage}`,'bad');fxEnemy('与ダメ +3','bad',{small:true,y:'66%'})}break}};
 
-turnEnd=function(){if(S.ended)return;if(S.status.poisonTurns>0){directPartyLoss(Math.ceil(S.maxHp*.05),'【毒】',true);S.status.poisonTurns--}if(S.ended)return;if(S.enemy.status.poisonTurns>0){const d=Math.ceil(S.enemy.maxHp*.05),before=S.enemy.hp;S.enemy.hp=Math.max(0,S.enemy.hp-d);const lost=before-S.enemy.hp;addLog(`敵の【毒】：${lost}ダメージ`,'hit');if(lost>0)fxEnemy(`-${lost}`,'damage');S.enemy.status.poisonTurns--;checkBattleEnd()}if(S.ended)return;if(inParty('arachne')&&hasTier('arachne',15)&&S.natureSpentThisTurn&&!S.arachneT15Used){S.arachneT15Used=true;S.enemy.status.poisonTurns=Math.max(S.enemy.status.poisonTurns,2);addLog('アラクネ：敵に【毒2】','good');fxEnemy('毒 2T','status',{small:true,y:'63%'})}for(const k of ['charm','curse','shock']){if(S.status[k]>0)S.status[k]=Math.max(0,S.status[k]-10);if(S.enemy.status[k]>0)S.enemy.status[k]=Math.max(0,S.enemy.status[k]-10)}if(inParty('demon')&&S.hp>0&&S.hp<=S.maxHp*.2){S.res.magic++;addLog(`デーモン：魔力+1 → ${S.res.magic}`,'good')}if(S.turn<=5&&itemCount('food'))healBattle(2*itemCount('food'),null,'非常食');if(S.status.seal){S.status.seal.turns--;if(S.status.seal.turns<=0){addLog(`${charById(S.status.seal.id).name}の【封印】が解除。`,'good');S.status.seal=null}}for(const c of S.party){if(c.id==='goblin'&&c.goblinTempBuffs?.length){const expired=c.goblinTempBuffs.filter(b=>b.expires<=S.turn);if(expired.length){const down=expired.reduce((a,b)=>a+b.amount,0);c.currentAtk=Math.max(0,c.currentAtk-down);c.goblinTempBuffs=c.goblinTempBuffs.filter(b=>b.expires>S.turn);addLog(`気合チャージ終了：攻撃力-${down} → ${c.currentAtk}`,'note')}}}if(S.status.disableTurns>0&&S.status.disableAppliedTurn!==S.turn){S.status.disableTurns--;if(S.status.disableTurns<=0){const old=S.party.find(c=>c.id===S.status.disabledId);addLog(`${old?.name||'味方'}の【ショック】が解除。`,'good');S.status.disabledId=null}else{S.status.disabledId=chooseDisabledAlly();const c=S.party.find(x=>x.id===S.status.disabledId);addLog(`【ショック】：次のターンは${c?.name||'味方'}が行動不能。`,'bad')}}R.stats.turns++;S.turn++;S.skipEnemy=false;S.golemWaiting=false;S.elfGuard=false;S.enemyDamagePenalty=0;S.natureSpentThisTurn=false;S.disabledWaitId=null;S.currentChosenId=null;choiceId=null;if(!S.enemy.boss||S.enemy.actionMode==='cycle')S.enemy.actionIndex++;S.enemy.intent=nextEnemyIntent(false);addLog(`TURN ${S.turn}`,'turn');if(S.enemy.special50JustQueued){S.enemy.special50JustQueued=false;addLog(`${S.enemy.name}：ターン開始時HP50%以下。「${S.enemy.special50.name}」が発動する！`,'bad');fxEnemy('特殊行動','status',{small:true,y:'67%'})}};
+turnEnd=function(){if(S.ended)return;if(S.status.poisonTurns>0){directPartyLoss(Math.ceil(S.maxHp*.05),'【毒】',true);S.status.poisonTurns--}if(S.ended)return;if(S.enemy.status.poisonTurns>0){const d=Math.ceil(S.enemy.maxHp*.05),before=S.enemy.hp;S.enemy.hp=Math.max(0,S.enemy.hp-d);const lost=before-S.enemy.hp;addLog(`敵の【毒】：${lost}ダメージ`,'hit');if(lost>0)fxEnemy(`-${lost}`,'damage');S.enemy.status.poisonTurns--;checkBattleEnd()}if(S.ended)return;if(inParty('arachne')&&hasTier('arachne',15)&&S.natureSpentThisTurn&&!S.arachneT15Used){S.arachneT15Used=true;S.enemy.status.poisonTurns=Math.max(S.enemy.status.poisonTurns,2);addLog('アラクネ：敵に【毒2】','good');fxEnemy('毒 2T','status',{small:true,y:'63%'})}for(const k of ['charm','curse','shock']){if(S.status[k]>0)S.status[k]=Math.max(0,S.status[k]-10);if(S.enemy.status[k]>0)S.enemy.status[k]=Math.max(0,S.enemy.status[k]-10)}if(inParty('demon')&&S.hp>0&&S.hp<=S.maxHp*.2){S.res.magic++;addLog(`デーモン：魔力+1 → ${S.res.magic}`,'good')}if(S.turn<=5&&itemCount('food'))healBattle(2*itemCount('food'),null,'非常食');if(S.status.seal){S.status.seal.turns--;if(S.status.seal.turns<=0){addLog(`${charById(S.status.seal.id).name}の【封印】が解除。`,'good');S.status.seal=null}}for(const c of S.party){if(c.id==='goblin'&&c.goblinTempBuffs?.length){const expired=c.goblinTempBuffs.filter(b=>b.expires<=S.turn);if(expired.length){const down=expired.reduce((a,b)=>a+b.amount,0);c.currentAtk=Math.max(0,c.currentAtk-down);c.goblinTempBuffs=c.goblinTempBuffs.filter(b=>b.expires>S.turn);addLog(`気合チャージ終了：攻撃力-${down} → ${c.currentAtk}`,'note')}}}if(S.status.disableTurns>0){S.status.disableTurns--;if(S.status.disableTurns<=0){const old=S.party.find(c=>c.id===S.status.disabledId);addLog(`${old?.name||'味方'}の【ショック】が解除。`,'good');S.status.disabledId=null;S.status.disableTurns=0}}R.stats.turns++;S.turn++;S.skipEnemy=false;S.golemWaiting=false;S.elfGuard=false;S.enemyDamagePenalty=0;S.natureSpentThisTurn=false;S.disabledWaitId=null;S.currentChosenId=null;choiceId=null;if(!S.enemy.boss||S.enemy.actionMode==='cycle')S.enemy.actionIndex++;S.enemy.intent=nextEnemyIntent(false);addLog(`TURN ${S.turn}`,'turn');if(S.enemy.special50JustQueued){S.enemy.special50JustQueued=false;addLog(`${S.enemy.name}：ターン開始時HP50%以下。「${S.enemy.special50.name}」が発動する！`,'bad');fxEnemy('特殊行動','status',{small:true,y:'67%'})}};
 
 async function runTurnV13(){if(!choiceId||S.ended||S.animating)return;if(S.status.seal&&S.status.seal.id===choiceId)return;if(S.status.disabledId===choiceId)return;const chosen=partyChar(choiceId),hadEvadeBuff=S.enemy.evadeBuffTurns>0,hadDodge100=S.enemy.dodge100Turns>0;S.currentChosenId=choiceId;S.animating=true;S.enemyAnimState=null;S.golemWaiting=false;S.elfGuard=false;S.skipEnemy=false;S.enemyActedEarly=false;S.disabledWaitId=null;addLog(`${chosen.name}を「選択」。`,'note');const waits=S.party.filter(c=>c.id!==choiceId),early=['slime','arachne','fairy','golem','demon','alraune'];const orderedWaits=[...waits.filter(c=>early.includes(c.id)),...waits.filter(c=>!early.includes(c.id))];const finishEarly=()=>{S.animating=false;S.phase=null;S.enemyAnimState=null;renderBattle()};if(S.enemy.intent?.preemptive){const a=S.enemy.intent;S.phase={kind:'enemy',id:null,title:`先制：${S.enemy.name}`,effect:`${a.name}　${a.desc}`};S.enemyAnimState='strike';renderBattle();await pacedSleep(280);runEnemy();S.enemyActedEarly=true;renderBattle();await pacedSleep(480);S.enemyAnimState=null;if(S.ended){finishEarly();return}}for(let i=0;i<orderedWaits.length;i++){const c=orderedWaits[i];S.phase={kind:'wait',id:c.id,title:`待機 ${i+1}/${orderedWaits.length}：${c.name}`,effect:c.wait};S.enemyAnimState=null;renderBattle();await pacedSleep(260);const hpBefore=S.enemy.hp;if(!S.ended)executeWait(c);S.enemyAnimState=S.enemy.hp<hpBefore?'hit':null;renderBattle();await pacedSleep(430);S.enemyAnimState=null;if(S.ended){finishEarly();return}}S.phase={kind:'select',id:chosen.id,title:`選択：${chosen.name}`,effect:chosen.select};S.enemyAnimState=null;renderBattle();await pacedSleep(280);const selectedHpBefore=S.enemy.hp;if(!S.ended)executeSelected(chosen);S.enemyAnimState=S.enemy.hp<selectedHpBefore?'hit':null;renderBattle();await pacedSleep(500);S.enemyAnimState=null;if(S.ended){finishEarly();return}if(hadEvadeBuff&&S.enemy.evadeBuffTurns>0)S.enemy.evadeBuffTurns--;if(hadDodge100&&S.enemy.dodge100Turns>0)S.enemy.dodge100Turns--;if(!S.enemyActedEarly){const a=S.enemy.intent;S.phase={kind:'enemy',id:null,title:`敵行動：${S.enemy.name}`,effect:a?`${a.name}　${a.desc}`:'行動なし'};S.enemyAnimState='windup';renderBattle();await pacedSleep(300);S.enemyAnimState='strike';if(!S.ended)runEnemy();renderBattle();await pacedSleep(560);S.enemyAnimState=null;if(S.ended){finishEarly();return}}S.phase={kind:'end',id:null,title:'ターン終了',effect:'状態異常・ターン終了効果を処理'};renderBattle();await pacedSleep(180);if(!S.ended)turnEnd();renderBattle();await pacedSleep(260);S.animating=false;S.phase=null;S.enemyAnimState=null;renderBattle()}
 runTurn=runTurnV13;
@@ -1299,7 +1299,7 @@ applyPartyPercent=function(k,n,label){
  if(amount<=0){addLog(`${label}：【${statusName(k)}】は無効化された。`,'good');return false}if(silverBlocksStatusV15(label,statusName(k)))return false;
  const before=S.status[k]||0;S.status[k]=clamp(before+amount,0,100);addLog(`${label}：パーティに【${statusName(k)}】${amount}% → ${S.status[k]}%`,'bad');fxPartyRes(`${statusName(k)} +${amount}%`,'bad');checkArachneTrigger();if(S.status[k]>before){triggerRevengeV15();lamiaWrathV15();return true}return false;
 };
-applyDisableTurns=function(turns,label){const resist=statusResist();if(resist&&rnd(resist)){addLog(`${label}：状態異常耐性${resist}%で【ショック】を無効化。`,'good');fxPartyRes('RESIST','info');return false}if(silverBlocksStatusV15(label,'ショック'))return false;S.status.disableTurns=Math.max(S.status.disableTurns||0,turns);S.status.disabledId=chooseDisabledAlly();S.status.disableAppliedTurn=S.turn;const c=S.party.find(x=>x.id===S.status.disabledId);addLog(`${label}：${c?.name||'味方'}に【ショック${turns}】。選択・待機不能。`,'bad');fxCard(`ショック ${turns}`,'bad',S.status.disabledId);checkArachneTrigger();triggerRevengeV15();lamiaWrathV15();return true};
+applyDisableTurns=function(turns,label){const resist=statusResist();if(resist&&rnd(resist)){addLog(`${label}：状態異常耐性${resist}%で【ショック】を無効化。`,'good');fxPartyRes('RESIST','info');return false}if(silverBlocksStatusV15(label,'ショック'))return false;const active=(S.status.disableTurns||0)>0&&!!S.status.disabledId;S.status.disableTurns=Math.max(S.status.disableTurns||0,turns);if(!active)S.status.disabledId=chooseDisabledAlly();const c=S.party.find(x=>x.id===S.status.disabledId);addLog(`${label}：${c?.name||'味方'}に【ショック${turns}】。選択・待機不能。`,'bad');fxCard(`ショック ${turns}`,'bad',S.status.disabledId);checkArachneTrigger();triggerRevengeV15();lamiaWrathV15();return true};
 applySeal=function(turns,label){const resist=statusResist();if(resist&&rnd(resist)){addLog(`${label}：状態異常耐性${resist}%で【封印】を無効化。`,'good');fxPartyRes('RESIST','info');return false}if(silverBlocksStatusV15(label,'封印'))return false;const id=S.party[Math.floor(Math.random()*S.party.length)].id;S.status.seal={id,turns};addLog(`${label}：${charById(id).name}に【封印${turns}】`,'bad');fxPartyRes(`封印 ${charById(id).name}`,'bad');checkArachneTrigger();triggerRevengeV15();lamiaWrathV15();return true};
 
 const baseRunEnemyV15=runEnemy;
@@ -2125,12 +2125,12 @@ document.title='魔物娘ローグライト v1.8a Background Trial';
 </script>
 
 <style>
-/* v1.9a 21F-30F */
+/* v1.9b 21F-30F status/balance adjustment */
 .stage-card .stage-note-v19{display:block;margin-top:5px;color:#b9a9c4;font-size:8px;line-height:1.45}
 </style>
 <script>
 /* =============================
-   v1.9a 21F-30F
+   v1.9b 21F-30F status/balance adjustment
    - 5 normal enemies + Silver Slime + Mimic
    - Vritra at 30F
    - 20F -> 21F seamless continuation
@@ -2150,39 +2150,39 @@ const BG_BATTLE_HILL_V19='data:image/webp;base64,UklGRubrAwBXRUJQVlA4WAoAAAAIAAA
 
 Object.assign(ENEMIES,{
   scylla:{id:'scylla',name:'スキュラ',hp:190,image:'enemy_scylla',stage:3,manaReward:50,actionMode:'cycle',portraitScale:1.04,portraitOffsetY:-2,actions:[
-    {name:'攻撃',kind:'damage',type:'physical',damage:8,hits:3,desc:'8物理ダメージ。これを3回行う'},
-    {name:'テンタクルタッチ',kind:'damage',type:'pleasure',damage:29,desc:'29快楽ダメージ'},
+    {name:'攻撃',kind:'damage',type:'physical',damage:10,hits:3,desc:'10物理ダメージ。これを3回行う'},
+    {name:'テンタクルタッチ',kind:'damage',type:'pleasure',damage:34,desc:'34快楽ダメージ'},
     {name:'イレイザー',kind:'eraseAll',desc:'味方のスタック・バフを全て消滅'},
-    {name:'攻撃',kind:'damage',type:'physical',damage:8,hits:3,desc:'8物理ダメージ。これを3回行う'}]},
+    {name:'攻撃',kind:'damage',type:'physical',damage:10,hits:3,desc:'10物理ダメージ。これを3回行う'}]},
   mermaid:{id:'mermaid',name:'マーメイド',hp:140,image:'enemy_mermaid',stage:3,manaReward:50,actionMode:'cycle',portraitScale:1.04,portraitOffsetY:-2,actions:[
     {name:'誘惑の歌',kind:'randomStatus',status:'charm',min:40,max:70,step:10,desc:'【魅了】40%〜70%付与（10%単位）'},
-    {name:'攻撃',kind:'damage',type:'magic',damage:27,desc:'27魔導ダメージ'},
-    {name:'攻撃',kind:'damage',type:'magic',damage:27,desc:'27魔導ダメージ'},
-    {name:'マーメイドテイル',kind:'charmTail',type:'pleasure',damage:24,desc:'24快楽ダメージ。【魅了】%分、ダメージ加算'}]},
+    {name:'攻撃',kind:'damage',type:'magic',damage:31,desc:'31魔導ダメージ'},
+    {name:'攻撃',kind:'damage',type:'magic',damage:31,desc:'31魔導ダメージ'},
+    {name:'マーメイドテイル',kind:'charmTail',type:'pleasure',damage:26,desc:'26快楽ダメージ。【魅了】%分、ダメージ加算'}]},
   yokai_fox:{id:'yokai_fox',name:'妖狐',hp:170,image:'enemy_yokai_fox',stage:3,manaReward:50,actionMode:'cycle',portraitScale:1.04,portraitOffsetY:-2,actions:[
-    {name:'攻撃',kind:'damage',type:'physical',damage:28,desc:'28物理ダメージ'},
-    {name:'サンダー',kind:'damageDisable',type:'magic',damage:15,chance:70,disableTurns:2,desc:'15魔導ダメージ。70%で【ショック2】'},
-    {name:'ふわふわしっぽ',kind:'damage',type:'pleasure',damage:15,hits:2,desc:'15快楽ダメージ。これを2回行う'},
+    {name:'攻撃',kind:'damage',type:'physical',damage:32,desc:'32物理ダメージ'},
+    {name:'サンダー',kind:'damageDisable',type:'magic',damage:20,chance:70,disableTurns:3,desc:'20魔導ダメージ。70%で【ショック3】'},
+    {name:'ふわふわしっぽ',kind:'damage',type:'pleasure',damage:18,hits:2,desc:'18快楽ダメージ。これを2回行う'},
     {name:'妖力チャージ',kind:'regenCharge',regenTurns:3,damageUp:3,desc:'自身に「リジェネ3」付与。与ダメージ+3'}]},
   dogu:{id:'dogu',name:'土偶娘',hp:150,image:'enemy_dogu',stage:3,manaReward:50,actionMode:'cycle',portraitScale:1.04,portraitOffsetY:-2,actions:[
-    {name:'ダーク',kind:'damageSealChance',type:'magic',damage:25,chance:20,sealTurns:1,desc:'25魔導ダメージ。20%で【封印1】'},
+    {name:'ダーク',kind:'damageSealChance',type:'magic',damage:30,chance:20,sealTurns:2,desc:'30魔導ダメージ。20%で【封印2】'},
     {name:'古代の呪い',kind:'randomStatus',status:'curse',min:50,max:100,step:10,desc:'【呪い】50%〜100%付与（10%単位）'},
-    {name:'攻撃',kind:'damage',type:'physical',damage:25,desc:'25物理ダメージ'},
-    {name:'攻撃',kind:'damage',type:'physical',damage:25,desc:'25物理ダメージ'}]},
+    {name:'攻撃',kind:'damage',type:'physical',damage:30,desc:'30物理ダメージ'},
+    {name:'攻撃',kind:'damage',type:'physical',damage:30,desc:'30物理ダメージ'}]},
   gnome:{id:'gnome',name:'ノーム',hp:180,image:'enemy_gnome',stage:3,manaReward:50,actionMode:'cycle',physicalTakenMult:.75,ability:{name:'土壁構築',desc:'このキャラの物理被ダメージは75%になる。'},portraitScale:1.04,portraitOffsetY:-2,actions:[
-    {name:'攻撃',kind:'damage',type:'physical',damage:26,desc:'26物理ダメージ'},
-    {name:'クエイク',kind:'damageDisable',type:'magic',damage:30,chance:20,disableTurns:1,desc:'30魔導ダメージ。20%で【ショック1】'},
-    {name:'攻撃',kind:'damage',type:'physical',damage:26,desc:'26物理ダメージ'},
-    {name:'土の拘束',kind:'damageAtkDown',type:'physical',damage:20,atkDown:5,desc:'20物理ダメージ。ランダムな味方の攻撃力-5'}]},
+    {name:'攻撃',kind:'damage',type:'physical',damage:30,desc:'30物理ダメージ'},
+    {name:'クエイク',kind:'damageDisable',type:'magic',damage:34,chance:20,disableTurns:2,desc:'34魔導ダメージ。20%で【ショック2】'},
+    {name:'攻撃',kind:'damage',type:'physical',damage:30,desc:'30物理ダメージ'},
+    {name:'土の拘束',kind:'damageAtkDown',type:'physical',damage:24,atkDown:5,desc:'24物理ダメージ。ランダムな味方の攻撃力-5'}]},
   mimic:{id:'mimic',name:'ミミック娘',hp:250,image:'enemy_mimic',stage:3,manaReward:50,actionMode:'cycle',ability:{name:'旅人キラー',desc:'所持しているアイテム1個につき会心率+1.5%。ドロップはレア以上確定。'},portraitScale:1.04,portraitOffsetY:-2,actions:[
-    {name:'ダーク',kind:'damageSealChance',type:'magic',damage:30,chance:20,sealTurns:1,desc:'30魔導ダメージ。20%で【封印1】'},
-    {name:'連続噛みつき',kind:'damage',type:'physical',damage:16,hits:2,desc:'16物理ダメージ。これを2回行う'},
-    {name:'攻撃',kind:'damage',type:'physical',damage:35,desc:'35物理ダメージ'},
+    {name:'ダーク',kind:'damageSealChance',type:'magic',damage:34,chance:20,sealTurns:2,desc:'34魔導ダメージ。20%で【封印2】'},
+    {name:'連続噛みつき',kind:'damage',type:'physical',damage:18,hits:2,desc:'18物理ダメージ。これを2回行う'},
+    {name:'攻撃',kind:'damage',type:'physical',damage:40,desc:'40物理ダメージ'},
     {name:'カース',kind:'randomStatus',status:'curse',min:20,max:60,step:10,desc:'【呪い】20%〜60%付与（10%単位）'}]},
   vritra:{id:'vritra',name:'ヴリトラ',hp:400,image:'enemy_vritra',stage:3,manaReward:250,boss:true,actionMode:'cycle',ability:{name:'黒蛇の報復',desc:'状態異常を付与・再付与された時、50%で31物理ダメージ。1ターン1回まで。'},portraitScale:1.04,portraitOffsetY:-2,actions:[
     {name:'攻撃',kind:'damage',type:'physical',damage:31,desc:'31物理ダメージ'},
-    {name:'ダーク',kind:'damageSealChance',type:'magic',damage:30,chance:20,sealTurns:1,desc:'30魔導ダメージ。20%で【封印1】'},
-    {name:'サンダー',kind:'damageDisable',type:'magic',damage:20,chance:70,disableTurns:2,desc:'20魔導ダメージ。70%で【ショック2】'},
+    {name:'ダーク',kind:'damageSealChance',type:'magic',damage:30,chance:20,sealTurns:2,desc:'30魔導ダメージ。20%で【封印2】'},
+    {name:'サンダー',kind:'damageDisable',type:'magic',damage:20,chance:70,disableTurns:3,desc:'20魔導ダメージ。70%で【ショック3】'},
     {name:'黒の裁き',kind:'blackJudgment',type:'physical',damage:30,bonusDamage:10,desc:'30物理ダメージ。戦闘中の攻撃力上昇バフがあるなら追加10魔導ダメージ'}],
     special50:{name:'邪蛇の脱皮',kind:'vritraMolt',heal:50,critUp:10,desc:'自身のデバフ・状態異常を全解除。会心率+10.0%。HP50回復'}}
 });
@@ -2314,6 +2314,7 @@ renderDepart=function(){
 };
 
 // Battle mechanics added for 21F-30F.
+// v1.9b: poison/seal/shock duration timing unified; shock target remains fixed until expiry.
 function hasCombatAtkBuffV19(){return !!S?.party?.some(c=>c.currentAtk>currentAtk(c.id))}
 function eraseAllBuffStacksV19(label){
   const hasStacks=Object.values(S.res||{}).some(v=>v>0);
@@ -2449,7 +2450,7 @@ if(deepestPanelV19){
 if(Number(META.deepest||1)>=20&&!META.cleared20){META.cleared20=true;saveMeta()}
 renderStage3V19();
 if(S)renderBattle();
-document.title='魔物娘ローグライト v1.9a 21-30F';
+document.title='魔物娘ローグライト v1.9b Status Balance';
 })();
 </script>
 
